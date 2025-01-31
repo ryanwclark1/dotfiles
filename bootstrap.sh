@@ -2,6 +2,7 @@
 set -e
 
 echo "Setting up dotfiles and installing CLI tools..."
+shell=$(basename $SHELL)
 
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
@@ -44,8 +45,20 @@ fi
 
 # Link dotfiles configurations
 ln -sf ~/.dotfiles/starship.toml ~/.config/starship.toml
-ln -sf ~/.dotfiles/.bashrc ~/.bashrc
-ln -sf ~/.dotfiles/.zshrc ~/.zshrc
-ln -sf ~/.dotfiles/.atuin.toml ~/.config/atuin/config.toml
+ln -sf ~/.dotfiles/atuin/config.toml ~/.config/atuin/config.toml
+
+if [ "$shell" = "bash" ]; then
+  echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
+  echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> ~/.bashrc
+  echo 'eval "$(fzf --bash)"' >> ~/.bashrc
+  atuin gen-completions --shell bash --out-dir $HOME
+fi
+
+if [ "$shell" = "zsh" ]; then
+  echo 'eval "$(starship init zsh --print-full-init)"' >> ~/.zshrc
+  echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> ~/.zshrc
+  echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
+  atuin gen-completions --shell zsh --out-dir $HOME
+fi
 
 echo "Dotfiles and CLI tools setup complete!"
