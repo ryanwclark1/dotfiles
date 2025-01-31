@@ -23,8 +23,7 @@ fi
 # Install atuin
 if ! command -v atuin &> /dev/null; then
   echo "Installing atuin..."
-  curl -sSL https://github.com/ellie/atuin/releases/latest/download/atuin-linux-$(uname -m) -o ~/.local/bin/atuin
-  chmod +x ~/.local/bin/atuin
+  curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
 fi
 
 # Install starship
