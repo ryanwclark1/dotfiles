@@ -54,14 +54,14 @@ if [ "$shell" = "bash" ]; then
   echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
   echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> ~/.bashrc
   echo 'eval "$(fzf --bash)"' >> ~/.bashrc
-  atuin gen-completions --shell bash --out-dir $HOME
+  echo 'eval "$(atuin init bash)"' >> ~/.bashrc
 fi
 
 if [ "$shell" = "zsh" ]; then
   echo 'eval "$(starship init zsh --print-full-init)"' >> ~/.zshrc
   echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> ~/.zshrc
   echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
-  atuin gen-completions --shell zsh --out-dir $HOME
+  echo 'eval "$(atuin init zsh)"' >> ~/.zshrc
 fi
 
 echo "Dotfiles and CLI tools setup complete!"
