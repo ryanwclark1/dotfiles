@@ -7,7 +7,7 @@ scan_timeout = 30
 [aws]
 disabled = true
 format = "on [$symbol$profile(\\($region\\))]($style)"
-symbol = ""
+symbol = " "
 
 [azure]
 disabled = true
@@ -16,7 +16,7 @@ disabled = true
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [c]
 disabled = false
@@ -64,14 +64,14 @@ symbol = " "
 [directory]
 format = "[ $path ]($style)"
 home_symbol = "~"
-read_only = ""
+read_only = " "
 style = "fg:#303446 bg:#babbf1"
 truncate_to_repo = true
 truncation_length = 8
 truncation_symbol = "…/"
 
 [directory.substitutions]
-"/code" = "/󰲋 "
+Code = "󰲋 "
 Desktop = " "
 Documents = "󰈙 "
 Downloads = " "
@@ -83,13 +83,16 @@ Videos = " "
 disabled = false
 format = "[[ $symbol( $context) ](fg:#303446 bg:#f2d5cf)]($style)"
 style = "bg:#f2d5cf"
-symbol = ""
+symbol = " "
 
 [elixir]
 symbol = " "
 
 [elm]
 symbol = " "
+
+[erlang]
+symbol = " "
 
 [fill]
 style = "bg:none fg:none"
@@ -104,7 +107,7 @@ symbol = "󱇶 "
 disabled = false
 format = "[[ $symbol $branch ](fg:#303446 bg:#c6d0f5)]($style)"
 style = "bg:#c6d0f5"
-symbol = ""
+symbol = " "
 
 [git_status]
 disabled = false
@@ -115,12 +118,12 @@ style = "bg:#c6d0f5"
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [haskell]
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [hg_branch]
 symbol = " "
@@ -129,7 +132,7 @@ symbol = " "
 disabled = false
 format = "[$ssh_symbol]($style)"
 ssh_only = true
-ssh_symbol = ""
+ssh_symbol = " "
 style = "bg:#ca9ee6 fg:#303446"
 
 [java]
@@ -145,13 +148,13 @@ symbol = " "
 disabled = true
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [kubernetes]
 disabled = false
 format = "[[ $symbol$context( $namespace ) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = "󱃾"
+symbol = "󱃾 "
 
 [line_break]
 disabled = false
@@ -187,7 +190,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [os]
 disabled = false
@@ -236,7 +239,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [python]
 detect_folders = [".venv"]
@@ -244,8 +247,11 @@ disabled = false
 format = "[[ $symbol( $version )(($virtualenv) )](fg:#303446 bg:#eebebe)]($style)"
 pyenv_version_name = true
 style = "bg:#eebebe"
-symbol = "󰌠"
+symbol = " "
 version_format = "$raw"
+
+[rlang]
+symbol = " "
 
 [ruby]
 symbol = " "
@@ -254,7 +260,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [scala]
 symbol = ""
@@ -264,17 +270,17 @@ disabled = false
 format = "[$shlvl]($style) "
 repeat = true
 style = "bold cyan"
-symbol = ""
+symbol = " "
 threshold = 2
 
 [swift]
 disabled = true
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [terraform]
-symbol = "󱁢"
+symbol = "󱁢 "
 
 [time]
 disabled = false
@@ -294,4 +300,4 @@ style_user = "bg:#ca9ee6 fg:#303446"
 disabled = true
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
