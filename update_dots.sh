@@ -24,7 +24,7 @@ copy_files() {
     local dest_file="$DESTINATION_DIR/$1"
 
     if [[ -f "$src_file" ]]; then
-        cp "$src_file" "$dest_file"
+        cp -L "$src_file" "$dest_file"  # Use -L to dereference symbolic links
         chown "$USER" "$dest_file"
         chmod u+w "$dest_file"
         echo "Copied file: $src_file -> $dest_file"
@@ -40,7 +40,7 @@ copy_directories() {
 
     if [[ -d "$src_dir" ]]; then
         echo "Copying directory: $src_dir -> $dest_dir"
-        cp -r "$src_dir" "$dest_dir"
+        cp -rL "$src_dir" "$dest_dir"  # Use -rL to dereference symbolic links
         chown -R "$USER" "$dest_dir"
         find "$dest_dir" -type f -exec chmod u+w {} \;
         echo "Copied directory: $src_dir -> $dest_dir"
