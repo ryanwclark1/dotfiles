@@ -17,9 +17,7 @@ fi
 # Install fd
 if ! command -v fd &> /dev/null; then
   echo "Installing fd..."
-  curl -LO https://github.com/sharkdp/fd/releases/latest/download/fd-$(uname -m)-unknown-linux-gnu.tar.gz
-  tar -xzf fd-$(uname -m)-unknown-linux-gnu.tar.gz --strip-components=1 -C ~/.local/bin
-  rm fd-$(uname -m)-unknown-linux-gnu.tar.gz
+  apt-get update && apt-get install fd-find -y
 fi
 
 # Install atuin
