@@ -9,14 +9,14 @@ DESTINATION_DIR="$SCRIPT_DIR"
 
 # Default file and directory lists (relative to $SOURCE_DIR)
 DEFAULT_FILE_LIST=("starship.toml")
-DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "tealdeer")
+DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "scripts" "tealdeer")
 
 # Ensure destination directory exists
 mkdir -p "$DESTINATION_DIR"
 
 # Default text replacement values
-OLD_TEXT="new_text"
-NEW_TEXT="new_text"
+OLD_TEXT="/home/administrator"
+NEW_TEXT="~"
 
 # Function to copy files and modify permissions
 copy_files() {
