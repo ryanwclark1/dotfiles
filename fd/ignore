@@ -1,1 +1,4 @@
-/nix/store/mhvdymrc5f8gxafa8vpicba1ns78jf5g-home-manager-files/.config/fd/ignore
+.git/
+.env/
+.venv/
+node_modules/

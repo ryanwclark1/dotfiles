@@ -1,1 +1,5 @@
-/nix/store/mhvdymrc5f8gxafa8vpicba1ns78jf5g-home-manager-files/.config/k9s/hotkeys.yaml
+hotKeys:
+  shift-0:
+    command: pods
+    description: Viewing pods
+    shortCut: Shift-0

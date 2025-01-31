@@ -1,4 +1,0 @@
-client:
-  tealdeer: true
-finder:
-  command: fzf

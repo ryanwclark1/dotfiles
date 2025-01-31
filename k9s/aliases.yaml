@@ -1,1 +1,2 @@
-/nix/store/mhvdymrc5f8gxafa8vpicba1ns78jf5g-home-manager-files/.config/k9s/aliases.yaml
+aliases:
+  pp: v1/pods

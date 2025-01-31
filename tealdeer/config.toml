@@ -1,1 +1,7 @@
-/nix/store/mhvdymrc5f8gxafa8vpicba1ns78jf5g-home-manager-files/.config/tealdeer/config.toml
+[display]
+compact = false
+use_pager = true
+
+[updates]
+auto_update = true
+auto_update_interval_hours = 24

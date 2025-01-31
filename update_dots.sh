@@ -15,7 +15,7 @@ DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" 
 mkdir -p "$DESTINATION_DIR"
 
 # Default text replacement values
-OLD_TEXT="/home/administrator"
+OLD_TEXT="~"
 NEW_TEXT="~"
 
 # Function to copy files and modify permissions

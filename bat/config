@@ -1,1 +1,2 @@
-/nix/store/mhvdymrc5f8gxafa8vpicba1ns78jf5g-home-manager-files/.config/bat/config
+--pager='less -FR'
+--theme=theme
