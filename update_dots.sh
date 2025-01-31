@@ -60,6 +60,8 @@ for dir in "${DEFAULT_DIR_LIST[@]}"; do
 done
 
 # Update text within copied files
-find "$DESTINATION_DIR" -type f -exec sed -i "s/$OLD_TEXT/$NEW_TEXT/g" {} \;
+escaped_old_text=$(printf '%s\n' "$OLD_TEXT" | sed 's/[]\/$*.^|[]/\\&/g')
+escaped_new_text=$(printf '%s\n' "$NEW_TEXT" | sed 's/[]\/$*.^|[]/\\&/g')
+find "$DESTINATION_DIR" -type f -exec sed -i "s/$escaped_old_text/$escaped_new_text/g" {} \;
 
 echo "Files and directories copied successfully to $DESTINATION_DIR. Text replacement completed."
