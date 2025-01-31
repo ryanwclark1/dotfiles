@@ -35,9 +35,15 @@ fi
 # Install k9s
 if ! command -v k9s &> /dev/null; then
   echo "Installing k9s..."
-  curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$(uname -m).tar.gz
-  tar -xzf k9s_Linux_*.tar.gz -C ~/.local/bin
-  rm k9s_Linux_*.tar.gz
+  if [ -f /etc/debian_version ]; then
+    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb
+    sudo dpkg -i k9s_linux_amd64.deb
+    rm k9s_linux_amd64.deb
+  else
+    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz
+    tar -xzf k9s_linux_*.tar.gz -C ~/.local/bin
+    rm k9s_Linux_*.tar.gz
+  fi
 fi
 
 # Link dotfiles configurations
