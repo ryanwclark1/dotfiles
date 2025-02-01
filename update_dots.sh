@@ -14,10 +14,6 @@ DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" 
 # Ensure destination directory exists
 mkdir -p "$DESTINATION_DIR"
 
-# Default text replacement values
-OLD_TEXT="~"
-NEW_TEXT="~"
-
 # Function to copy files and modify permissions
 copy_files() {
     local src_file="$SOURCE_DIR/$1"
@@ -40,7 +36,7 @@ copy_directories() {
 
     if [[ -d "$src_dir" ]]; then
         echo "Copying directory: $src_dir -> $dest_dir"
-        cp -rL "$src_dir" "$dest_dir"  # Use -rL to dereference symbolic links
+        cp -rfL "$src_dir" "$dest_dir"  # Use -rL to dereference symbolic links
         chown -R "$USER" "$dest_dir"
         find "$dest_dir" -type f -exec chmod u+w {} \;
         echo "Copied directory: $src_dir -> $dest_dir"
@@ -58,10 +54,5 @@ done
 for dir in "${DEFAULT_DIR_LIST[@]}"; do
     copy_directories "$dir"
 done
-
-# Update text within copied files
-escaped_old_text=$(printf '%s\n' "$OLD_TEXT" | sed 's/[]\/$*.^|[]/\\&/g')
-escaped_new_text=$(printf '%s\n' "$NEW_TEXT" | sed 's/[]\/$*.^|[]/\\&/g')
-find "$DESTINATION_DIR" -type f -exec sed -i "s/$escaped_old_text/$escaped_new_text/g" {} \;
 
 echo "Files and directories copied successfully to $DESTINATION_DIR. Text replacement completed."
