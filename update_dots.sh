@@ -31,8 +31,7 @@ remove_directories() {
     fi
 }
 
-# Ensure destination directory exists
-mkdir -p "$DESTINATION_DIR"
+
 
 # Function to copy files and modify permissions
 copy_files() {
@@ -64,6 +63,20 @@ copy_directories() {
         echo "Warning: Directory $src_dir does not exist."
     fi
 }
+
+# Remove existing files
+for file in "${DEFAULT_FILE_LIST[@]}"; do
+    remove_files "$file"
+done
+
+# Remove existing directories
+for dir in "${DEFAULT_DIR_LIST[@]}"; do
+    remove_directories "$dir"
+done
+
+
+# Ensure destination directory exists
+mkdir -p "$DESTINATION_DIR"
 
 # Copy default files
 for file in "${DEFAULT_FILE_LIST[@]}"; do
