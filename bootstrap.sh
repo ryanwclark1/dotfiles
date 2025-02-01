@@ -32,6 +32,12 @@ if ! command -v starship &> /dev/null; then
   curl -sS https://starship.rs/install.sh | sh -s -- -y
 fi
 
+# Install zoxide
+if ! command -v zoxide &> /dev/null; then
+  echo "Installing zoxide..."
+  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+file
+
 # Install k9s
 if ! command -v k9s &> /dev/null; then
   echo "Installing k9s..."
