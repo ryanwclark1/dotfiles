@@ -11,6 +11,26 @@ DESTINATION_DIR="$SCRIPT_DIR"
 DEFAULT_FILE_LIST=("starship.toml")
 DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "scripts" "tealdeer")
 
+# Function to remove existing files
+remove_files() {
+    local dest_file="$DESTINATION_DIR/$1"
+    
+    if [[ -f "$dest_file" ]]; then
+        rm -f "$dest_file"
+        echo "Removed existing file: $dest_file"
+    fi
+}
+
+# Function to remove existing directories
+remove_directories() {
+    local dest_dir="$DESTINATION_DIR/$1"
+    
+    if [[ -d "$dest_dir" ]]; then
+        rm -rf "$dest_dir"
+        echo "Removed existing directory: $dest_dir"
+    fi
+}
+
 # Ensure destination directory exists
 mkdir -p "$DESTINATION_DIR"
 
