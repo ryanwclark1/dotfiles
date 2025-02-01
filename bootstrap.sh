@@ -54,7 +54,7 @@ fi
 
 # Link dotfiles configurations
 ln -sf ~/.dotfiles/starship.toml ~/.config/starship.toml
-ln -sf ~/.dotfiles/atuin/config.toml ~/.config/atuin/config.toml
+# ln -sf ~/.dotfiles/atuin/config.toml ~/.config/atuin/config.toml
 
 if [ "$shell" = "bash" ]; then
   echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
