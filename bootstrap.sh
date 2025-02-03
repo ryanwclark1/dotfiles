@@ -12,44 +12,44 @@ mkdir -p ~/.local/bin
 # Install fzf
 if ! command -v fzf &> /dev/null; then
   echo "Installing fzf..."
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install --all
+  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf || { echo "Failed to install fzf"; exit 1; }
+  ~/.fzf/install --all || { echo "Failed to install fzf"; exit 1; }
 fi
 
 # Install fd
 if ! command -v fd &> /dev/null; then
   echo "Installing fd..."
-  apt-get update && apt-get install fd-find -y
+  apt-get update && apt-get install fd-find -y || { echo "Failed to install fd"; exit 1; }
 fi
 
 # Install atuin
 if ! command -v atuin &> /dev/null; then
   echo "Installing atuin..."
-  curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+  curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh || { echo "Failed to install atuin"; exit 1; }
 fi
 
 # Install starship
 if ! command -v starship &> /dev/null; then
   echo "Installing starship..."
-  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  curl -sS https://starship.rs/install.sh | sh -s -- -y || { echo "Failed to install starship"; exit 1; }
 fi
 
 # Install zoxide
 if ! command -v zoxide &> /dev/null; then
   echo "Installing zoxide..."
-  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh || { echo "Failed to install zoxide"; exit 1; }
 fi
 
 # Install k9s
 if ! command -v k9s &> /dev/null; then
   echo "Installing k9s..."
   if [ -f /etc/debian_version ]; then
-    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb
-    sudo dpkg -i k9s_linux_amd64.deb
+    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb || { echo "Failed to download k9s"; exit 1; }
+    sudo dpkg -i k9s_linux_amd64.deb || { echo "Failed to install k9s"; exit 1; }
     rm k9s_linux_amd64.deb
   else
-    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz
-    tar -xzf k9s_linux_*.tar.gz -C ~/.local/bin
+    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz || { echo "Failed to download k9s"; exit 1; }
+    tar -xzf k9s_linux_*.tar.gz -C ~/.local/bin || { echo "Failed to extract k9s"; exit 1; }
     rm k9s_Linux_*.tar.gz
   fi
 fi
