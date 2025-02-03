@@ -35,6 +35,22 @@ if ! command -v fd &> /dev/null; then
   fi
 fi
 
+# Install ripgrep
+if ! command -v rg &> /dev/null; then
+  echo "Installing ripgrep..."
+  latest_version=$(curl -s https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | jq -r .tag_name)
+  if [ -f /etc/debian_version ]; then
+    curl -LO "https://github.com/BurntSushi/ripgrep/releases/download/$latest_version/ripgrep_${latest_version#v}-1_amd64.deb" || { echo "Failed to download ripgrep"; exit 1; }
+    sudo dpkg -i "ripgrep_${latest_version#v}-1_amd64.deb" || { echo "Failed to install ripgrep"; exit 1; }
+    rm "ripgrep_${latest_version#v}-1_amd64.deb"
+  else
+    echo "Skipping ripgrep installation..."
+    # curl -LO "https://github.com/BurntSushi/ripgrep/releases/download/$latest_version/ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" || { echo "Failed to download ripgrep"; exit 1; }
+    # tar -xzf "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" -C ~/.local/bin --strip-components=1 || { echo "Failed to extract ripgrep"; exit 1; }
+    # rm "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz"
+  fi
+fi
+
 # Install atuin
 if ! command -v atuin &> /dev/null; then
   echo "Installing atuin..."
@@ -66,6 +82,8 @@ if ! command -v k9s &> /dev/null; then
     rm k9s_Linux_*.tar.gz
   fi
 fi
+
+
 
 # Link dotfiles configurations
 # ln -sf ~/.dotfiles/starship.toml ~/.config/starship.toml
