@@ -75,20 +75,21 @@ fi
 # ln -sf ~/.dotfiles/eza/theme ~/.config/eza/theme
 # ln -sf ~/.dotfiles/fd/ignore ~/.config/fd/ignore
 
-# mkdir -p ~/.config
-# for item in ~/dotfiles/*; do
-#   dest="$HOME/.config/$(basename "$item")"
-#   if [ -d "$item" ]; then
-#     mkdir -p "$dest"
-#     cp -r "$item/"* "$dest"
-#   else
-#     cp -f "$item" "$dest"
-#   fi
-# done
 
 # Step 1: Copy files and directories from ~/dotfiles to ~/.config recursively, overwriting existing files
 echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
 rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
+
+mkdir -p ~/.config
+for item in ~/dotfiles/*; do
+  dest="$HOME/.config/$(basename "$item")"
+  if [ -d "$item" ]; then
+    mkdir -p "$dest"
+    cp -r "$item/"* "$dest"
+  else
+    cp -f "$item" "$dest"
+  fi
+done
 
 # Step 2: Make sure files in ~/.config/scripts are executable
 echo "Setting execute permissions for files in $SCRIPTS_DIR"
