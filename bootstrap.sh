@@ -53,10 +53,21 @@ if ! command -v k9s &> /dev/null; then
 fi
 
 # Link dotfiles configurations
-ln -sf ~/.dotfiles/starship.toml ~/.config/starship.toml
+# ln -sf ~/.dotfiles/starship.toml ~/.config/starship.toml
 # ln -sf ~/.dotfiles/atuin/config.toml ~/.config/atuin/config.toml
+# ln -sf ~/.dotfiles/bat/config ~/.config/bat/config
+# ln -sf ~/.dotfiles/bat/themes/theme.tmTheme ~/.config/bat/themes/theme.tmTheme
+# ln -sf ~/.dotfiles/eza/theme ~/.config/eza/theme
+# ln -sf ~/.dotfiles/fd/ignore ~/.config/fd/ignore
+
+for item in ~/.dotfiles/*; do
+  dest="$HOME/.config/$(basename "$item")"
+  ln -sf "$item" "$dest"
+done
 
 if [ "$shell" = "bash" ]; then
+  echo 'export VISUAL=code' >> ~/.bashrc
+  echo 'export EDITOR="$VISUAL"' >> ~/.bashrc
   echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
   echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> ~/.bashrc
   echo 'eval "$(fzf --bash)"' >> ~/.bashrc
@@ -64,6 +75,8 @@ if [ "$shell" = "bash" ]; then
 fi
 
 if [ "$shell" = "zsh" ]; then
+  echo 'export VISUAL=code' >> ~/.zshrc
+  echo 'export EDITOR="$VISUAL"' >> ~/.zshrc
   echo 'eval "$(starship init zsh --print-full-init)"' >> ~/.zshrc
   echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> ~/.zshrc
   echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
