@@ -63,7 +63,7 @@ fi
 # ln -sf ~/.dotfiles/fd/ignore ~/.config/fd/ignore
 
 mkdir -p ~/.config
-for item in ~/.dotfiles/*; do
+for item in ~/dotfiles/*; do
   dest="$HOME/.config/$(basename "$item")"
   if [ -d "$item" ]; then
     mkdir -p "$dest"
