@@ -86,16 +86,6 @@ if ! command -v k9s &> /dev/null; then
 fi
 
 
-
-# Link dotfiles configurations
-# ln -sf ~/.dotfiles/starship.toml ~/.config/starship.toml
-# ln -sf ~/.dotfiles/atuin/config.toml ~/.config/atuin/config.toml
-# ln -sf ~/.dotfiles/bat/config ~/.config/bat/config
-# ln -sf ~/.dotfiles/bat/themes/theme.tmTheme ~/.config/bat/themes/theme.tmTheme
-# ln -sf ~/.dotfiles/eza/theme ~/.config/eza/theme
-# ln -sf ~/.dotfiles/fd/ignore ~/.config/fd/ignore
-
-
 # Step 1: Copy files and directories from ~/dotfiles to ~/.config recursively, overwriting existing files
 echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
 # rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
