@@ -31,8 +31,6 @@ remove_directories() {
     fi
 }
 
-
-
 # Function to copy files and modify permissions
 copy_files() {
     local src_file="$SOURCE_DIR/$1"
@@ -74,7 +72,6 @@ for dir in "${DEFAULT_DIR_LIST[@]}"; do
     remove_directories "$dir"
 done
 
-
 # Ensure destination directory exists
 mkdir -p "$DESTINATION_DIR"
 
@@ -89,3 +86,11 @@ for dir in "${DEFAULT_DIR_LIST[@]}"; do
 done
 
 echo "Files and directories copied successfully to $DESTINATION_DIR. Text replacement completed."
+
+if [[ -n $(git status --porcelain) ]]; then
+    git add .
+    git commit -m "Auto-update: $(date)"
+    git push origin main  # Change 'main' to your branch name if different
+else
+    echo "No changes to commit."
+fi
