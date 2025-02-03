@@ -6,7 +6,7 @@ shell=$(basename $SHELL)
 
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
-export PATH="$HOME/.local/bin:$PATH"
+
 
 
 # Install fzf
@@ -62,6 +62,7 @@ fi
 # ln -sf ~/.dotfiles/eza/theme ~/.config/eza/theme
 # ln -sf ~/.dotfiles/fd/ignore ~/.config/fd/ignore
 
+mkdir -p ~/.config
 for item in ~/.dotfiles/*; do
   dest="$HOME/.config/$(basename "$item")"
   if [ -d "$item" ]; then
@@ -71,6 +72,8 @@ for item in ~/.dotfiles/*; do
     # ln -sf "$item" "$dest"
   fi
 done
+
+export PATH="$HOME/.local/bin:$PATH"
 
 if [ "$shell" = "bash" ]; then
   echo 'export VISUAL=code' >> ~/.bashrc
