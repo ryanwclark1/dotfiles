@@ -4,6 +4,12 @@ set -e
 echo "Setting up dotfiles and installing CLI tools..."
 shell=$(basename $SHELL)
 
+# Define source and destination directories
+DOTFILES_DIR=~/dotfiles
+CONFIG_DIR=~/.config
+SCRIPTS_DIR=$CONFIG_DIR/scripts
+BIN_DIR=~/.local/bin
+
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
 
@@ -69,35 +75,60 @@ fi
 # ln -sf ~/.dotfiles/eza/theme ~/.config/eza/theme
 # ln -sf ~/.dotfiles/fd/ignore ~/.config/fd/ignore
 
-mkdir -p ~/.config
-for item in ~/dotfiles/*; do
-  dest="$HOME/.config/$(basename "$item")"
-  if [ -d "$item" ]; then
-    mkdir -p "$dest"
-  else
-    cp -f "$item" "$dest"
-    # ln -sf "$item" "$dest"
-  fi
+# mkdir -p ~/.config
+# for item in ~/dotfiles/*; do
+#   dest="$HOME/.config/$(basename "$item")"
+#   if [ -d "$item" ]; then
+#     mkdir -p "$dest"
+#     cp -r "$item/"* "$dest"
+#   else
+#     cp -f "$item" "$dest"
+#   fi
+# done
+
+# Step 1: Copy files and directories from ~/dotfiles to ~/.config recursively, overwriting existing files
+echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
+rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
+
+# Step 2: Make sure files in ~/.config/scripts are executable
+echo "Setting execute permissions for files in $SCRIPTS_DIR"
+for script in "$SCRIPTS_DIR"/*.sh; do
+    if [ -f "$script" ]; then
+        chmod +x "$script"
+    fi
 done
 
-export PATH="$HOME/.local/bin:$PATH"
+# Step 3: Copy executable scripts to ~/bin and remove the .sh extension
+echo "Copying scripts from $SCRIPTS_DIR to $BIN_DIR"
+for script in "$SCRIPTS_DIR"/*.sh; do
+    if [ -f "$script" ]; then
+        # Remove .sh extension and copy to bin directory
+        script_name=$(basename "$script" .sh)
+        cp "$script" "$BIN_DIR/$script_name"
+    fi
+done
+
 
 if [ "$shell" = "bash" ]; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
   echo 'export VISUAL=code' >> ~/.bashrc
   echo 'export EDITOR="$VISUAL"' >> ~/.bashrc
   echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
   echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> ~/.bashrc
   echo 'eval "$(fzf --bash)"' >> ~/.bashrc
   echo 'eval "$(atuin init bash)"' >> ~/.bashrc
+  source ~/.bashrc
 fi
 
 if [ "$shell" = "zsh" ]; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
   echo 'export VISUAL=code' >> ~/.zshrc
   echo 'export EDITOR="$VISUAL"' >> ~/.zshrc
   echo 'eval "$(starship init zsh --print-full-init)"' >> ~/.zshrc
   echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> ~/.zshrc
   echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
   echo 'eval "$(atuin init zsh)"' >> ~/.zshrc
+  source ~/.zshrc
 fi
 
 echo "Dotfiles and CLI tools setup complete!"
