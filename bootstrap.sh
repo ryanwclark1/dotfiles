@@ -7,8 +7,6 @@ shell=$(basename $SHELL)
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
 
-
-
 # Install fzf
 if ! command -v fzf &> /dev/null; then
   echo "Installing fzf..."
@@ -19,7 +17,16 @@ fi
 # Install fd
 if ! command -v fd &> /dev/null; then
   echo "Installing fd..."
-  apt-get update && apt-get install fd-find -y || { echo "Failed to install fd"; exit 1; }
+  latest_version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | jq -r .tag_name)
+  if [ -f /etc/debian_version ]; then
+    curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd_${latest_version#v}_amd64.deb" || { echo "Failed to download fd"; exit 1; }
+    sudo dpkg -i "fd_${latest_version#v}_amd64.deb" || { echo "Failed to install fd"; exit 1; }
+    rm "fd_${latest_version#v}_amd64.deb"
+  else
+    curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" || { echo "Failed to download fd"; exit 1; }
+    tar -xzf "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" -C ~/.local/bin --strip-components=1 || { echo "Failed to extract fd"; exit 1; }
+    rm "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz"
+  fi
 fi
 
 # Install atuin
