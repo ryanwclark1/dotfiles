@@ -9,6 +9,8 @@ DOTFILES_DIR=~/dotfiles
 CONFIG_DIR=~/.config
 SCRIPTS_DIR=$CONFIG_DIR/scripts
 BIN_DIR=~/.local/bin
+# list of scripts to be removed from the scripts directory
+SCRIPTS_TO_REMOVE=(sysz.sh wifi.sh)
 
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
@@ -106,6 +108,11 @@ for item in ~/dotfiles/*; do
   else
     cp -f "$item" "$dest"
   fi
+done
+
+# Remove a list of script that are not applicable to the current system
+for script in "${SCRIPTS_TO_REMOVE[@]}"; do
+  rm -f "$SCRIPTS_DIR/$script"
 done
 
 # Step 2: Make sure files in ~/.config/scripts are executable
