@@ -6,6 +6,8 @@ shell=$(basename $SHELL)
 
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
+export PATH="$HOME/.local/bin:$PATH"
+
 
 # Install fzf
 if ! command -v fzf &> /dev/null; then
@@ -62,7 +64,12 @@ fi
 
 for item in ~/.dotfiles/*; do
   dest="$HOME/.config/$(basename "$item")"
-  ln -sf "$item" "$dest"
+  if [ -d "$item" ]; then
+    mkdir -p "$dest"
+  else
+    cp -f "$item" "$dest"
+    # ln -sf "$item" "$dest"
+  fi
 done
 
 if [ "$shell" = "bash" ]; then
