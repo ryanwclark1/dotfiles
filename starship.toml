@@ -1,7 +1,7 @@
 add_newline = true
 command_timeout = 500
 follow_symlinks = true
-format = "[](#ca9ee6)$os$username$hostname$localip${custom.yazi}[](bg:#babbf1 fg:#ca9ee6)$directory[](fg:#babbf1 bg:#c6d0f5)$git_branch$git_status[](fg:#c6d0f5 bg:#eebebe)$bun$c$cmake$dart$golang$haskell$java$kotlin$kubernetes$lua$nodejs$php$python$rust$swift$zig[](fg:#eebebe bg:#f2d5cf)$docker_context$nix_shell[](fg:#f2d5cf)$fill[](fg:#ca9ee6)$time[](#ca9ee6)$line_break$character"
+format = "[](#ca9ee6)$os$username$hostname$localip$container${custom.yazi}[](bg:#babbf1 fg:#ca9ee6)$directory[](fg:#babbf1 bg:#c6d0f5)$git_branch$git_status[](fg:#c6d0f5 bg:#eebebe)$python$bun$c$cmake$dart$golang$haskell$java$kotlin$kubernetes$lua$nodejs$php$rust$swift$zig[](fg:#eebebe bg:#f2d5cf)$docker_context$nix_shell[](fg:#f2d5cf)$fill[](fg:#ca9ee6)$time[](#ca9ee6)$line_break$character"
 scan_timeout = 30
 
 [aws]
@@ -48,7 +48,7 @@ symbol = " "
 [container]
 disabled = false
 format = "[$symbol [$name]]($style)"
-style = "fg:#303446 bg:#babbf1"
+style = "bg:#ca9ee6 fg:#303446"
 symbol = " "
 
 [custom.yazi]
