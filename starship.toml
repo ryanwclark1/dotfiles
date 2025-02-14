@@ -83,8 +83,8 @@ Videos = " "
 
 [docker_context]
 disabled = false
-format = "[[ $symbol( $context) ](fg:#303446 bg:#f2d5cf)]($style)"
-style = "bg:#f2d5cf"
+format = "[ $symbol( $context) ]($style)"
+style = "fg:#303446 bg:#f2d5cf"
 symbol = " "
 
 [elixir]
