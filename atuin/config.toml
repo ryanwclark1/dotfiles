@@ -19,8 +19,9 @@ show_preview = true
 show_tabs = true
 store_failed = true
 style = "auto"
+sync_address = "http://atuin.tail5825d.ts.net"
 sync_frequency = "1m"
-update_check = true
+update_check = false
 
 [keymap_cursor]
 emacs = "blink-block"
