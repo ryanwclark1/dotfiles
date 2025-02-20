@@ -5,22 +5,23 @@ echo "Setting up dotfiles and installing CLI tools..."
 shell=$(basename $SHELL)
 
 # Define source and destination directories
-DOTFILES_DIR=~/dotfiles
-CONFIG_DIR=~/.config
+DOTFILES_DIR=$HOME/dotfiles
+CONFIG_DIR=$HOME/.config
 SCRIPTS_DIR=$CONFIG_DIR/scripts
-BIN_DIR=~/.local/bin
+BIN_DIR=$HOME/.local/bin
 # list of scripts to be removed from the scripts directory
 SCRIPTS_TO_REMOVE=(sysz.sh wifi.sh)
 ATUIN_CONFIG="$CONFIG_DIR/atuin/config.toml"
 
-# Ensure ~/.local/bin exists
-mkdir -p ~/.local/bin
+# Ensure $HOME/.local/bin exists
+mkdir -p $HOME/.local/bin
 
 # Install fzf
 if ! command -v fzf &> /dev/null; then
   echo "Installing fzf..."
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf || { echo "Failed to install fzf"; exit 1; }
-  ~/.fzf/install --all || { echo "Failed to install fzf"; exit 1; }
+  git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf || { echo "Failed to install fzf"; exit 1; }
+  $HOME/.fzf/install --all || { echo "Failed to install fzf"; exit 1; }
+  rm -rf $HOME/.fzf 
 fi
 
 # Install fd
@@ -33,7 +34,7 @@ if ! command -v fd &> /dev/null; then
     rm "fd_${latest_version#v}_amd64.deb"
   else
     curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" || { echo "Failed to download fd"; exit 1; }
-    tar -xzf "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" -C ~/.local/bin --strip-components=1 || { echo "Failed to extract fd"; exit 1; }
+    tar -xzf "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" -C $HOME/.local/bin --strip-components=1 || { echo "Failed to extract fd"; exit 1; }
     rm "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz"
   fi
 fi
@@ -49,7 +50,7 @@ if ! command -v rg &> /dev/null; then
   else
     echo "Skipping ripgrep installation..."
     # curl -LO "https://github.com/BurntSushi/ripgrep/releases/download/$latest_version/ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" || { echo "Failed to download ripgrep"; exit 1; }
-    # tar -xzf "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" -C ~/.local/bin --strip-components=1 || { echo "Failed to extract ripgrep"; exit 1; }
+    # tar -xzf "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" -C $HOME/.local/bin --strip-components=1 || { echo "Failed to extract ripgrep"; exit 1; }
     # rm "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz"
   fi
 fi
@@ -81,7 +82,7 @@ if ! command -v k9s &> /dev/null; then
     rm k9s_linux_amd64.deb
   else
     curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz || { echo "Failed to download k9s"; exit 1; }
-    tar -xzf k9s_linux_*.tar.gz -C ~/.local/bin || { echo "Failed to extract k9s"; exit 1; }
+    tar -xzf k9s_linux_*.tar.gz -C $HOME/.local/bin || { echo "Failed to extract k9s"; exit 1; }
     rm k9s_Linux_*.tar.gz
   fi
 fi
@@ -89,11 +90,11 @@ fi
 
 
 
-# Step 1: Copy files and directories from ~/dotfiles to ~/.config recursively, overwriting existing files
+# Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
 echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
 # rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
-mkdir -p ~/.config
-for item in ~/dotfiles/*; do
+mkdir -p $HOME/.config
+for item in $HOME/dotfiles/*; do
   dest="$HOME/.config/$(basename "$item")"
   if [ -d "$item" ]; then
     mkdir -p "$dest"
@@ -121,7 +122,7 @@ for script in "${SCRIPTS_TO_REMOVE[@]}"; do
   rm -f "$SCRIPTS_DIR/$script"
 done
 
-# Step 2: Make sure files in ~/.config/scripts are executable
+# Step 2: Make sure files in $HOME/.config/scripts are executable
 echo "Setting execute permissions for files in $SCRIPTS_DIR"
 for script in "$SCRIPTS_DIR"/*.sh; do
     if [ -f "$script" ]; then
@@ -129,7 +130,7 @@ for script in "$SCRIPTS_DIR"/*.sh; do
     fi
 done
 
-# Step 3: Copy executable scripts to ~/bin and remove the .sh extension
+# Step 3: Copy executable scripts to $HOME/bin and remove the .sh extension
 echo "Copying scripts from $SCRIPTS_DIR to $BIN_DIR"
 for script in "$SCRIPTS_DIR"/*.sh; do
     if [ -f "$script" ]; then
@@ -141,25 +142,25 @@ done
 
 
 if [ "$shell" = "bash" ]; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-  echo 'export VISUAL=code' >> ~/.bashrc
-  # echo 'export EDITOR="$VISUAL"' >> ~/.bashrc
-  echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
-  echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> ~/.bashrc
-  echo 'eval "$(fzf --bash)"' >> ~/.bashrc
-  echo 'eval "$(atuin init bash)"' >> ~/.bashrc
-  source ~/.bashrc
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc
+  echo 'export VISUAL=code' >> $HOME/.bashrc
+  # echo 'export EDITOR="$VISUAL"' >> $HOME/.bashrc
+  echo 'eval "$(starship init bash --print-full-init)"' >> $HOME/.bashrc
+  echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> $HOME/.bashrc
+  echo 'eval "$(fzf --bash)"' >> $HOME/.bashrc
+  echo 'eval "$(atuin init bash)"' >> $HOME/.bashrc
+  source $HOME/.bashrc
 fi
 
 if [ "$shell" = "zsh" ]; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-  echo 'export VISUAL=code' >> ~/.zshrc
-  # echo 'export EDITOR="$VISUAL"' >> ~/.zshrc
-  echo 'eval "$(starship init zsh --print-full-init)"' >> ~/.zshrc
-  echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> ~/.zshrc
-  echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
-  echo 'eval "$(atuin init zsh)"' >> ~/.zshrc
-  source ~/.zshrc
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.zshrc
+  echo 'export VISUAL=code' >> $HOME/.zshrc
+  # echo 'export EDITOR="$VISUAL"' >> $HOME/.zshrc
+  echo 'eval "$(starship init zsh --print-full-init)"' >> $HOME/.zshrc
+  echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> $HOME/.zshrc
+  echo 'eval "$(fzf --zsh)"' >> $HOME/.zshrc
+  echo 'eval "$(atuin init zsh)"' >> $HOME/.zshrc
+  source $HOME/.zshrc
 fi
 
 echo "Dotfiles and CLI tools setup complete!"
