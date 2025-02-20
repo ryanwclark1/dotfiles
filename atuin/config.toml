@@ -23,6 +23,7 @@ style = "auto"
 sync_address = "http://100.112.124.7:8888"
 sync_frequency = "1m"
 update_check = false
+workspace = false
 
 [keymap_cursor]
 emacs = "blink-block"
