@@ -104,6 +104,7 @@ for item in ~/dotfiles/*; do
 done
 
 # Update ATUIN files for local
+chmod +rw $ATUIN_CONFIG
 if [[ -f "$ATUIN_CONFIG" ]]; then
     # Use sed to remove lines that start with key_path or sync_address
     sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
