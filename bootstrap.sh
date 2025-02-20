@@ -124,15 +124,15 @@ done
 
 # Step 2: Make sure files in $HOME/.config/scripts are executable
 echo "Setting execute permissions for files in $SCRIPTS_DIR"
-for script in "$SCRIPTS_DIR"/*.sh; do
-    if [ -f "$script" ]; then
-        chmod +x "$script"
-    fi
+for script in "$SCRIPTS_DIR"/*; do
+  if [ -f "$script" ]; then
+    chmod +x "$script"
+  fi
 done
 
 # Step 3: Copy executable scripts to $HOME/bin and remove the .sh extension
 echo "Copying scripts from $SCRIPTS_DIR to $BIN_DIR"
-for script in "$SCRIPTS_DIR"/*.sh; do
+for script in "$SCRIPTS_DIR"/*; do
     if [ -f "$script" ]; then
         # Remove .sh extension and copy to bin directory
         script_name=$(basename "$script" .sh)
