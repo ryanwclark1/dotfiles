@@ -123,11 +123,23 @@ for script in "$SCRIPTS_DIR"/*.sh; do
     fi
 done
 
+ATUIN_CONFIG="~/.config/atuin/config.toml"
+if [[ -f "$ATUIN_CONFIG" ]]; then
+    # Use sed to remove lines that start with key_path or sync_address
+    sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
+    sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
+
+    echo "Lines removed from $ATUIN_CONFIG"
+else
+    echo "Config file not found: $ATUIN_CONFIG"
+    exit 1
+fi
+
 
 if [ "$shell" = "bash" ]; then
   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
   echo 'export VISUAL=code' >> ~/.bashrc
-  echo 'export EDITOR="$VISUAL"' >> ~/.bashrc
+  # echo 'export EDITOR="$VISUAL"' >> ~/.bashrc
   echo 'eval "$(starship init bash --print-full-init)"' >> ~/.bashrc
   echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> ~/.bashrc
   echo 'eval "$(fzf --bash)"' >> ~/.bashrc
@@ -138,7 +150,7 @@ fi
 if [ "$shell" = "zsh" ]; then
   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
   echo 'export VISUAL=code' >> ~/.zshrc
-  echo 'export EDITOR="$VISUAL"' >> ~/.zshrc
+  # echo 'export EDITOR="$VISUAL"' >> ~/.zshrc
   echo 'eval "$(starship init zsh --print-full-init)"' >> ~/.zshrc
   echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> ~/.zshrc
   echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
