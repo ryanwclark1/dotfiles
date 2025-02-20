@@ -49,7 +49,7 @@ symbol = " "
 disabled = false
 format = "[ $symbol $name ]($style)"
 style = "bg:#ca9ee6 fg:#303446"
-symbole = " "
+symbol = " "
 
 [custom.yazi]
 description = "Indicate when the shell was launched by `yazi`"
