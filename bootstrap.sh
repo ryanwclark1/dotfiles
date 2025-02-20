@@ -21,7 +21,6 @@ if ! command -v fzf &> /dev/null; then
   echo "Installing fzf..."
   git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf || { echo "Failed to install fzf"; exit 1; }
   $HOME/.fzf/install --all || { echo "Failed to install fzf"; exit 1; }
-  rm -rf $HOME/.fzf 
 fi
 
 # Install fd
@@ -86,8 +85,6 @@ if ! command -v k9s &> /dev/null; then
     rm k9s_Linux_*.tar.gz
   fi
 fi
-
-
 
 
 # Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
