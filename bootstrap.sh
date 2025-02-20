@@ -11,6 +11,7 @@ SCRIPTS_DIR=$CONFIG_DIR/scripts
 BIN_DIR=~/.local/bin
 # list of scripts to be removed from the scripts directory
 SCRIPTS_TO_REMOVE=(sysz.sh wifi.sh)
+ATUIN_CONFIG="$CONFIG_DIR/atuin/config.toml"
 
 # Ensure ~/.local/bin exists
 mkdir -p ~/.local/bin
@@ -86,6 +87,8 @@ if ! command -v k9s &> /dev/null; then
 fi
 
 
+
+
 # Step 1: Copy files and directories from ~/dotfiles to ~/.config recursively, overwriting existing files
 echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
 # rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
@@ -99,6 +102,18 @@ for item in ~/dotfiles/*; do
     cp -f "$item" "$dest"
   fi
 done
+
+# Update ATUIN files for local
+if [[ -f "$ATUIN_CONFIG" ]]; then
+    # Use sed to remove lines that start with key_path or sync_address
+    sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
+    sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
+
+    echo "Lines removed from $ATUIN_CONFIG"
+else
+    echo "Config file not found: $ATUIN_CONFIG"
+    exit 1
+fi
 
 # Remove a list of script that are not applicable to the current system
 for script in "${SCRIPTS_TO_REMOVE[@]}"; do
@@ -122,18 +137,6 @@ for script in "$SCRIPTS_DIR"/*.sh; do
         cp "$script" "$BIN_DIR/$script_name"
     fi
 done
-
-ATUIN_CONFIG="~/.config/atuin/config.toml"
-if [[ -f "$ATUIN_CONFIG" ]]; then
-    # Use sed to remove lines that start with key_path or sync_address
-    sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
-    sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
-
-    echo "Lines removed from $ATUIN_CONFIG"
-else
-    echo "Config file not found: $ATUIN_CONFIG"
-    exit 1
-fi
 
 
 if [ "$shell" = "bash" ]; then
