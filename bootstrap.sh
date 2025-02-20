@@ -21,6 +21,8 @@ if ! command -v fzf &> /dev/null; then
   echo "Installing fzf..."
   git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf || { echo "Failed to install fzf"; exit 1; }
   $HOME/.fzf/install --all || { echo "Failed to install fzf"; exit 1; }
+  cp $HOME/.fzf/bin/* $HOME/.local/bin
+  rm -rf $HOME/.fzf
 fi
 
 # Install fd
