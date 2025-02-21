@@ -85,7 +85,7 @@ Videos = " "
 disabled = false
 format = "[ $symbol( $context) ]($style)"
 style = "fg:#303446 bg:#f2d5cf"
-symbol = " "
+symbol = " "
 
 [elixir]
 symbol = " "
@@ -247,7 +247,7 @@ symbol = " "
 [python]
 detect_folders = [".venv"]
 disabled = false
-format = "[[ $symbol($version)(($virtualenv) )](fg:#303446 bg:#eebebe)]($style)"
+format = "[[ $symbol($version)(($virtualenv))](fg:#303446 bg:#eebebe)]($style)"
 pyenv_version_name = false
 python_binary = ["python", "python3"]
 style = "bg:#eebebe"
