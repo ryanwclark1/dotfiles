@@ -21,9 +21,11 @@ install_fzf() {
   echo "Installing fzf..."
   git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf || {
     echo "Failed to install fzf"
+    exit 1
   }
   $HOME/.fzf/install --all || {
     echo "Failed to install fzf"
+    exit 1
   }
   cp $HOME/.fzf/bin/* $HOME/.local/bin
   rm -rf $HOME/.fzf
@@ -35,17 +37,21 @@ install_fd() {
   if [ -f /etc/debian_version ]; then
     curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd_${latest_version#v}_amd64.deb" || {
       echo "Failed to download fd"
+      exit 1
     }
     sudo dpkg -i "fd_${latest_version#v}_amd64.deb" || {
       echo "Failed to install fd"
+      exit 1
     }
     rm "fd_${latest_version#v}_amd64.deb"
   else
     curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" || {
       echo "Failed to download fd"
+      exit 1
     }
     tar -xzf "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" -C $HOME/.local/bin --strip-components=1 || {
       echo "Failed to extract fd"
+      exit 1
     }
     rm "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz"
   fi
@@ -57,9 +63,11 @@ install_rg() {
   if [ -f /etc/debian_version ]; then
     curl -LO "https://github.com/BurntSushi/ripgrep/releases/download/$latest_version/ripgrep_${latest_version#v}-1_amd64.deb" || {
       echo "Failed to download ripgrep"
+      exit 1
     }
     sudo dpkg -i "ripgrep_${latest_version#v}-1_amd64.deb" || {
       echo "Failed to install ripgrep"
+      exit 1
     }
     rm "ripgrep_${latest_version#v}-1_amd64.deb"
   else
@@ -98,14 +106,17 @@ install_k9s() {
   if [ -f /etc/debian_version ]; then
     if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb; then
       echo "Failed to download k9s"
+      exit 1
     fi
     if ! sudo dpkg -i k9s_linux_amd64.deb; then
       echo "Failed to install k9s"
+      exit 1
     fi
     rm k9s_linux_amd64.deb
   elif [ -n "$(uname -m)" ]; then
     if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz; then
       echo "Failed to download k9s"
+      exit 1
     fi
     if ! tar -xzf k9s_linux_*.tar.gz -C $HOME/.local/bin; then
       echo "Failed to extract k9s"
