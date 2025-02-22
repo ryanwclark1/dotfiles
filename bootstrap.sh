@@ -61,7 +61,6 @@ if ! command -v atuin &> /dev/null; then
   echo "Installing atuin..."
   if ! curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh; then
     echo "Failed to install atuin"
-    exit 1
   fi
 fi
 
