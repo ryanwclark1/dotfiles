@@ -12,7 +12,7 @@ BIN_DIR=$HOME/.local/bin
 # list of scripts to be removed from the scripts directory
 SCRIPTS_TO_REMOVE=(sysz.sh wifi.sh)
 ATUIN_CONFIG="$CONFIG_DIR/atuin/config.toml"
-
+REQUIRED_TOOLS=(git curl jq)
 # Ensure $HOME/.local/bin exists
 mkdir -p $HOME/.local/bin
 
@@ -29,6 +29,7 @@ install_fzf() {
   rm -rf $HOME/.fzf
 }
 
+# Install fd
 install_fd() {
   echo "Installing fd..."
   latest_version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | jq -r .tag_name)
@@ -51,6 +52,7 @@ install_fd() {
   fi
 }
 
+# Install ripgrep
 install_rg() {
   echo "Installing ripgrep..."
   latest_version=$(curl -s https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | jq -r .tag_name)
@@ -70,6 +72,7 @@ install_rg() {
   fi
 }
 
+# Install atuin
 install_atuin() {
   echo "Installing atuin..."
   if ! curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh; then
@@ -77,6 +80,7 @@ install_atuin() {
   fi
 }
 
+# Install starship
 install_starship() {
   echo "Installing starship..."
   curl -fsSL https://starship.rs/install.sh | bash -s -- -y || {
@@ -85,6 +89,7 @@ install_starship() {
   }
 }
 
+# Install zoxide
 install_zoxide() {
   echo "Installing zoxide..."
   curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh || {
@@ -93,6 +98,7 @@ install_zoxide() {
   }
 }
 
+# Install k9s
 install_k9s() {
   echo "Installing k9s..."
   if [ -f /etc/debian_version ]; then
@@ -320,7 +326,7 @@ get_architecture() {
   fi
 
   _arch="${_cputype}-${_ostype}"
-  echo "Architecture: ${_arch}"
+  echo "${_arch}"
 }
 
 get_bitness() {
@@ -407,16 +413,15 @@ main() {
     # Use sed to remove lines that start with key_path or sync_address
     sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
     sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
-
     echo "Lines removed from $ATUIN_CONFIG"
   else
     echo "Config file not found: $ATUIN_CONFIG"
-    exit 1
   fi
 
   # Remove a list of script that are not applicable to the current system
   for script in "${SCRIPTS_TO_REMOVE[@]}"; do
     rm -f "$SCRIPTS_DIR/$script"
+    echo "Removed $SCRIPTS_DIR/$script"
   done
 
   # Step 2: Make sure files in $HOME/.config/scripts are executable
@@ -439,8 +444,11 @@ main() {
 
   if [ "$shell" = "bash" ]; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >>$HOME/.bashrc
-    echo 'export VISUAL=code' >>$HOME/.bashrc
-    # echo 'export EDITOR="$VISUAL"' >> $HOME/.bashrc
+    if [ -f code ]; then
+      echo 'export VISUAL=code' >>$HOME/.bashrc
+    else
+      echo 'export VISUAL=nano' >>$HOME/.bashrc
+    fi
     echo 'eval "$(starship init bash --print-full-init)"' >>$HOME/.bashrc
     echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >>$HOME/.bashrc
     echo 'eval "$(fzf --bash)"' >>$HOME/.bashrc
