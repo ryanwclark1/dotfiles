@@ -16,17 +16,17 @@ ATUIN_CONFIG="$CONFIG_DIR/atuin/config.toml"
 # Ensure $HOME/.local/bin exists
 mkdir -p $HOME/.local/bin
 
+
 # Install fzf
-if ! command -v fzf &> /dev/null; then
+install_fzf() {
   echo "Installing fzf..."
   git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf || { echo "Failed to install fzf"; exit 1; }
   $HOME/.fzf/install --all || { echo "Failed to install fzf"; exit 1; }
   cp $HOME/.fzf/bin/* $HOME/.local/bin
   rm -rf $HOME/.fzf
-fi
+}
 
-# Install fd
-if ! command -v fd &> /dev/null; then
+install_fd(){
   echo "Installing fd..."
   latest_version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | jq -r .tag_name)
   if [ -f /etc/debian_version ]; then
@@ -38,10 +38,9 @@ if ! command -v fd &> /dev/null; then
     tar -xzf "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" -C $HOME/.local/bin --strip-components=1 || { echo "Failed to extract fd"; exit 1; }
     rm "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz"
   fi
-fi
+}
 
-# Install ripgrep
-if ! command -v rg &> /dev/null; then
+install_rg(){
   echo "Installing ripgrep..."
   latest_version=$(curl -s https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | jq -r .tag_name)
   if [ -f /etc/debian_version ]; then
@@ -54,31 +53,27 @@ if ! command -v rg &> /dev/null; then
     # tar -xzf "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" -C $HOME/.local/bin --strip-components=1 || { echo "Failed to extract ripgrep"; exit 1; }
     # rm "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz"
   fi
-fi
+}
 
-# Install atuin
-if ! command -v atuin &> /dev/null; then
+install_atuin(){
   echo "Installing atuin..."
   if ! curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh; then
     echo "Failed to install atuin"
   fi
-fi
+}
 
-# Install starship
-if ! command -v starship &> /dev/null; then
+install_starship(){
   echo "Installing starship..."
-  curl -sS https://starship.rs/install.sh | sh -s -- -y || { echo "Failed to install starship"; exit 1; }
-fi
+  curl -fsSL https://starship.rs/install.sh | bash -s -- -y || { echo "Failed to install starship"; exit 1; }
+}
 
-# Install zoxide
-if ! command -v zoxide &> /dev/null; then
+install_zoxide(){
   echo "Installing zoxide..."
   curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh || { echo "Failed to install zoxide"; exit 1; }
-fi
+}
 
-# Install k9s
-echo "Installing k9s..."
-if ! command -v k9s &> /dev/null; then
+install_k9s(){
+  echo "Installing k9s..."
   if [ -f /etc/debian_version ]; then
     if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb; then
       echo "Failed to download k9s"
@@ -101,8 +96,41 @@ if ! command -v k9s &> /dev/null; then
   else
     echo "Failed to install k9s"
   fi
+}
+
+if ! command -v fzf &> /dev/null; then
+  install_fzf
 fi
 
+# Install fd
+if ! command -v fd &> /dev/null; then
+  install_fd
+fi
+
+# Install ripgrep
+if ! command -v rg &> /dev/null; then
+  install rg
+fi
+
+# Install atuin
+if ! command -v atuin &> /dev/null; then
+  install_atuin
+fi
+
+# Install starship
+if ! command -v starship &> /dev/null; then
+  install_starship
+fi
+
+# Install zoxide
+if ! command -v zoxide &> /dev/null; then
+  install_zoxide
+fi
+
+# Install k9s
+if ! command -v k9s &> /dev/null; then
+  install_k9s
+fi
 
 # Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
 echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
