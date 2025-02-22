@@ -373,6 +373,14 @@ is_host_amd64_elf() {
     [ "${_current_exe_machine}" = "$(printf '\076')" ]
 }
 
+ensure() {
+    if ! "$@"; then err "command failed: $*"; fi
+}
+
+assert_nz() {
+    if [ -z "$1" ]; then err "found empty string: $2"; fi
+}
+
 main() {
   local _arch
   _arch="${ARCH:-$(ensure get_architecture)}"
