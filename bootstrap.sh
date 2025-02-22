@@ -306,83 +306,89 @@ get_architecture() {
 }
 
 
+main() {
+  local _arch
+  _arch="${ARCH:-$(ensure get_architecture)}"
+  assert_nz "${_arch}" "arch"
+  echo "Detected architecture: ${_arch}"
 
-local _arch
-_arch="${ARCH:-$(ensure get_architecture)}"
-assert_nz "${_arch}" "arch"
-echo "Detected architecture: ${_arch}"
-
-# Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
-echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
-# rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
-mkdir -p $HOME/.config
-for item in $HOME/dotfiles/*; do
-  dest="$HOME/.config/$(basename "$item")"
-  if [ -d "$item" ]; then
-    mkdir -p "$dest"
-    cp -r "$item/"* "$dest"
-  else
-    cp -f "$item" "$dest"
-  fi
-done
-
-# Update ATUIN files for local
-chmod +rw $ATUIN_CONFIG
-if [[ -f "$ATUIN_CONFIG" ]]; then
-    # Use sed to remove lines that start with key_path or sync_address
-    sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
-    sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
-
-    echo "Lines removed from $ATUIN_CONFIG"
-else
-    echo "Config file not found: $ATUIN_CONFIG"
-    exit 1
-fi
-
-# Remove a list of script that are not applicable to the current system
-for script in "${SCRIPTS_TO_REMOVE[@]}"; do
-  rm -f "$SCRIPTS_DIR/$script"
-done
-
-# Step 2: Make sure files in $HOME/.config/scripts are executable
-echo "Setting execute permissions for files in $SCRIPTS_DIR"
-for script in "$SCRIPTS_DIR"/*; do
-  if [ -f "$script" ]; then
-    chmod +x "$script"
-  fi
-done
-
-# Step 3: Copy executable scripts to $HOME/bin and remove the .sh extension
-echo "Copying scripts from $SCRIPTS_DIR to $BIN_DIR"
-for script in "$SCRIPTS_DIR"/*; do
-    if [ -f "$script" ]; then
-        # Remove .sh extension and copy to bin directory
-        script_name=$(basename "$script" .sh)
-        cp "$script" "$BIN_DIR/$script_name"
+  # Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
+  echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
+  # rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
+  mkdir -p $HOME/.config
+  for item in $HOME/dotfiles/*; do
+    dest="$HOME/.config/$(basename "$item")"
+    if [ -d "$item" ]; then
+      mkdir -p "$dest"
+      cp -r "$item/"* "$dest"
+    else
+      cp -f "$item" "$dest"
     fi
-done
+  done
+
+  # Update ATUIN files for local
+  chmod +rw $ATUIN_CONFIG
+  if [[ -f "$ATUIN_CONFIG" ]]; then
+      # Use sed to remove lines that start with key_path or sync_address
+      sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
+      sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
+
+      echo "Lines removed from $ATUIN_CONFIG"
+  else
+      echo "Config file not found: $ATUIN_CONFIG"
+      exit 1
+  fi
+
+  # Remove a list of script that are not applicable to the current system
+  for script in "${SCRIPTS_TO_REMOVE[@]}"; do
+    rm -f "$SCRIPTS_DIR/$script"
+  done
+
+  # Step 2: Make sure files in $HOME/.config/scripts are executable
+  echo "Setting execute permissions for files in $SCRIPTS_DIR"
+  for script in "$SCRIPTS_DIR"/*; do
+    if [ -f "$script" ]; then
+      chmod +x "$script"
+    fi
+  done
+
+  # Step 3: Copy executable scripts to $HOME/bin and remove the .sh extension
+  echo "Copying scripts from $SCRIPTS_DIR to $BIN_DIR"
+  for script in "$SCRIPTS_DIR"/*; do
+      if [ -f "$script" ]; then
+          # Remove .sh extension and copy to bin directory
+          script_name=$(basename "$script" .sh)
+          cp "$script" "$BIN_DIR/$script_name"
+      fi
+  done
 
 
-if [ "$shell" = "bash" ]; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc
-  echo 'export VISUAL=code' >> $HOME/.bashrc
-  # echo 'export EDITOR="$VISUAL"' >> $HOME/.bashrc
-  echo 'eval "$(starship init bash --print-full-init)"' >> $HOME/.bashrc
-  echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> $HOME/.bashrc
-  echo 'eval "$(fzf --bash)"' >> $HOME/.bashrc
-  echo 'eval "$(atuin init bash)"' >> $HOME/.bashrc
-  source $HOME/.bashrc
-fi
+  if [ "$shell" = "bash" ]; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc
+    echo 'export VISUAL=code' >> $HOME/.bashrc
+    # echo 'export EDITOR="$VISUAL"' >> $HOME/.bashrc
+    echo 'eval "$(starship init bash --print-full-init)"' >> $HOME/.bashrc
+    echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >> $HOME/.bashrc
+    echo 'eval "$(fzf --bash)"' >> $HOME/.bashrc
+    echo 'eval "$(atuin init bash)"' >> $HOME/.bashrc
+    source $HOME/.bashrc
+  fi
 
-if [ "$shell" = "zsh" ]; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.zshrc
-  echo 'export VISUAL=code' >> $HOME/.zshrc
-  # echo 'export EDITOR="$VISUAL"' >> $HOME/.zshrc
-  echo 'eval "$(starship init zsh --print-full-init)"' >> $HOME/.zshrc
-  echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> $HOME/.zshrc
-  echo 'eval "$(fzf --zsh)"' >> $HOME/.zshrc
-  echo 'eval "$(atuin init zsh)"' >> $HOME/.zshrc
-  source $HOME/.zshrc
-fi
+  if [ "$shell" = "zsh" ]; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.zshrc
+    echo 'export VISUAL=code' >> $HOME/.zshrc
+    # echo 'export EDITOR="$VISUAL"' >> $HOME/.zshrc
+    echo 'eval "$(starship init zsh --print-full-init)"' >> $HOME/.zshrc
+    echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >> $HOME/.zshrc
+    echo 'eval "$(fzf --zsh)"' >> $HOME/.zshrc
+    echo 'eval "$(atuin init zsh)"' >> $HOME/.zshrc
+    source $HOME/.zshrc
+  fi
 
-echo "Dotfiles and CLI tools setup complete!"
+  echo "Dotfiles and CLI tools setup complete!"
+}
+
+{
+  main "$@" || exit 1
+}
+
