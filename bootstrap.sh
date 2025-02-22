@@ -261,34 +261,34 @@ get_architecture() {
 
   # Detect 64-bit linux with 32-bit userland
   if [ "${_ostype}" = unknown-linux-musl ] && [ "${_bitness}" -eq 32 ]; then
-      case ${_cputype} in
-      x86_64)
-          # 32-bit executable for amd64 = x32
-          if is_host_amd64_elf; then {
-              err "x32 userland is unsupported"
-          }; else
-              _cputype=i686
-          fi
-          ;;
-      mips64)
-          _cputype=$(get_endianness mips '' el)
-          ;;
-      powerpc64)
-          _cputype=powerpc
-          ;;
-      aarch64)
-          _cputype=armv7
-          if [ "${_ostype}" = "linux-android" ]; then
-              _ostype=linux-androideabi
-          else
-              _ostype="${_ostype}eabihf"
-          fi
-          ;;
-      riscv64gc)
-          err "riscv64 with 32-bit userland unsupported"
-          ;;
-      *) ;;
-      esac
+    case ${_cputype} in
+    x86_64)
+        # 32-bit executable for amd64 = x32
+        if is_host_amd64_elf; then {
+            err "x32 userland is unsupported"
+        }; else
+            _cputype=i686
+        fi
+        ;;
+    mips64)
+        _cputype=$(get_endianness mips '' el)
+        ;;
+    powerpc64)
+        _cputype=powerpc
+        ;;
+    aarch64)
+        _cputype=armv7
+        if [ "${_ostype}" = "linux-android" ]; then
+            _ostype=linux-androideabi
+        else
+            _ostype="${_ostype}eabihf"
+        fi
+        ;;
+    riscv64gc)
+        err "riscv64 with 32-bit userland unsupported"
+        ;;
+    *) ;;
+    esac
   fi
 
   # Detect armv7 but without the CPU features Rust needs in that build,
@@ -301,8 +301,8 @@ get_architecture() {
       fi
   fi
 
-    _arch="${_cputype}-${_ostype}"
-    echo "${_arch}"
+  _arch="${_cputype}-${_ostype}"
+  echo "${_arch}"
 }
 
 
