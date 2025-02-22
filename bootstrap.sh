@@ -59,7 +59,10 @@ fi
 # Install atuin
 if ! command -v atuin &> /dev/null; then
   echo "Installing atuin..."
-  curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh || { echo "Failed to install atuin"; exit 1; }
+  if ! curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh; then
+    echo "Failed to install atuin"
+    exit 1
+  fi
 fi
 
 # Install starship
