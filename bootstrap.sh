@@ -77,16 +77,30 @@ if ! command -v zoxide &> /dev/null; then
 fi
 
 # Install k9s
+echo "Installing k9s..."
 if ! command -v k9s &> /dev/null; then
-  echo "Installing k9s..."
   if [ -f /etc/debian_version ]; then
-    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb || { echo "Failed to download k9s"; exit 1; }
-    sudo dpkg -i k9s_linux_amd64.deb || { echo "Failed to install k9s"; exit 1; }
+    if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb; then
+      echo "Failed to download k9s"
+      exit 1
+    fi
+    if ! sudo dpkg -i k9s_linux_amd64.deb; then
+      echo "Failed to install k9s"
+      exit 1
+    fi
     rm k9s_linux_amd64.deb
+  elif [ -n "$(uname -m)" ]; then
+    if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz; then
+      echo "Failed to download k9s"
+      exit 1
+    fi
+    if ! tar -xzf k9s_linux_*.tar.gz -C $HOME/.local/bin; then
+      echo "Failed to extract k9s"
+      exit 1
+    fi
+    rm k9s_linux_*.tar.gz
   else
-    curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz || { echo "Failed to download k9s"; exit 1; }
-    tar -xzf k9s_linux_*.tar.gz -C $HOME/.local/bin || { echo "Failed to extract k9s"; exit 1; }
-    rm k9s_Linux_*.tar.gz
+    echo "Failed to install k9s"
   fi
 fi
 
