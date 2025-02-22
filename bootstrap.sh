@@ -96,7 +96,6 @@ if ! command -v k9s &> /dev/null; then
     fi
     if ! tar -xzf k9s_linux_*.tar.gz -C $HOME/.local/bin; then
       echo "Failed to extract k9s"
-      exit 1
     fi
     rm k9s_linux_*.tar.gz
   else
