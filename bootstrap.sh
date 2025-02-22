@@ -320,7 +320,16 @@ get_architecture() {
   fi
 
   _arch="${_cputype}-${_ostype}"
-  echo "${_arch}"
+  echo "Architecture: ${_arch}"
+}
+
+get_bitness() {
+}
+
+get_endianness() {
+}
+
+is_host_amd64_elf() {
 }
 
 main() {
