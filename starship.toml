@@ -47,9 +47,9 @@ symbol = " "
 
 [container]
 disabled = false
-format = "[ $symbol $name ]($style)"
+format = "[$symbol [$name]]($style)"
 style = "bg:#ca9ee6 fg:#303446"
-symbol = " "
+symbol = " "
 
 [custom.yazi]
 description = "Indicate when the shell was launched by `yazi`"
@@ -61,7 +61,7 @@ when = "test -n \"$YAZI_LEVEL\""
 disabled = true
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [directory]
 format = "[ $path ]($style)"
@@ -85,7 +85,7 @@ Videos = " "
 disabled = false
 format = "[ $symbol( $context) ]($style)"
 style = "fg:#303446 bg:#f2d5cf"
-symbol = " "
+symbol = " "
 
 [elixir]
 symbol = " "
@@ -171,7 +171,7 @@ style = "bg:#ca9ee6 fg:#303446"
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = ""
 
 [memory_usage]
 symbol = "󰍛 "
@@ -190,9 +190,9 @@ symbol = " "
 
 [nodejs]
 disabled = false
-format = "[[ $symbol($version) ](fg:#303446 bg:#eebebe)]($style)"
+format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [os]
 disabled = false
@@ -207,7 +207,7 @@ Android = ""
 Arch = "󰣇"
 Artix = "󰣇"
 CentOS = " "
-Debian = " "
+Debian = "󰣚 "
 Fedora = "󰣛 "
 FreeBSD = " "
 Gentoo = "󰣨 "
@@ -242,16 +242,15 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [python]
 detect_folders = [".venv"]
 disabled = false
-format = "[[ $symbol($version)(($virtualenv))](fg:#303446 bg:#eebebe)]($style)"
-pyenv_version_name = false
-python_binary = ["python", "python3"]
+format = "[[ $symbol( $version )(($virtualenv) )](fg:#303446 bg:#eebebe)]($style)"
+pyenv_version_name = true
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 version_format = "$raw"
 
 [rlang]
@@ -264,7 +263,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [scala]
 symbol = ""
