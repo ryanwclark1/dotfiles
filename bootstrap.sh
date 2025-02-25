@@ -393,6 +393,8 @@ main() {
   assert_nz "${_arch}" "arch"
   echo "Detected architecture: ${_arch}"
 
+  check_installs
+
   # Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
   echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
   # rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
