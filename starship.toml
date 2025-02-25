@@ -47,9 +47,9 @@ symbol = " "
 
 [container]
 disabled = false
-format = "[$symbol [$name]]($style)"
+format = "[ $symbol $name ]($style)"
 style = "bg:#ca9ee6 fg:#303446"
-symbol = " "
+symbol = " "
 
 [custom.yazi]
 description = "Indicate when the shell was launched by `yazi`"
@@ -171,7 +171,7 @@ style = "bg:#ca9ee6 fg:#303446"
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = ""
+symbol = " "
 
 [memory_usage]
 symbol = "󰍛 "
@@ -192,7 +192,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [os]
 disabled = false
@@ -242,7 +242,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [python]
 detect_folders = [".venv"]
