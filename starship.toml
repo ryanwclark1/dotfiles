@@ -61,7 +61,7 @@ when = "test -n \"$YAZI_LEVEL\""
 disabled = true
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [directory]
 format = "[ $path ]($style)"
@@ -85,7 +85,7 @@ Videos = " "
 disabled = false
 format = "[ $symbol( $context) ]($style)"
 style = "fg:#303446 bg:#f2d5cf"
-symbol = " "
+symbol = " "
 
 [elixir]
 symbol = " "
@@ -190,9 +190,9 @@ symbol = " "
 
 [nodejs]
 disabled = false
-format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
+format = "[[ $symbol($version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [os]
 disabled = false
@@ -207,7 +207,7 @@ Android = ""
 Arch = "󰣇"
 Artix = "󰣇"
 CentOS = " "
-Debian = "󰣚 "
+Debian = " "
 Fedora = "󰣛 "
 FreeBSD = " "
 Gentoo = "󰣨 "
@@ -247,10 +247,11 @@ symbol = " "
 [python]
 detect_folders = [".venv"]
 disabled = false
-format = "[[ $symbol( $version )(($virtualenv) )](fg:#303446 bg:#eebebe)]($style)"
-pyenv_version_name = true
+format = "[[ $symbol($version) (($virtualenv))](fg:#303446 bg:#eebebe)]($style)"
+pyenv_version_name = false
+python_binary = ["python", "python3"]
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 version_format = "$raw"
 
 [rlang]
@@ -263,7 +264,7 @@ symbol = " "
 disabled = false
 format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
-symbol = " "
+symbol = " "
 
 [scala]
 symbol = ""
