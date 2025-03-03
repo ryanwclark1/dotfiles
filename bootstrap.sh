@@ -85,7 +85,6 @@ install_starship() {
   echo "Installing starship..."
   curl -fsSL https://starship.rs/install.sh | sh -s -- -y || {
     echo "Failed to install starship"
-    exit 1
   }
 }
 
@@ -94,7 +93,6 @@ install_zoxide() {
   echo "Installing zoxide..."
   curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh || {
     echo "Failed to install zoxide"
-    exit 1
   }
 }
 
