@@ -83,7 +83,7 @@ install_atuin() {
 # Install starship
 install_starship() {
   echo "Installing starship..."
-  curl -fsSL https://starship.rs/install.sh | bash -s -- -y || {
+  curl -fsSL https://starship.rs/install.sh | sh -s -- -y || {
     echo "Failed to install starship"
     exit 1
   }
