@@ -387,6 +387,24 @@ assert_nz() {
     if [ -z "$1" ]; then err "found empty string: $2"; fi
 }
 
+check_proc() {
+    # Check for /proc by looking for the /proc/self/exe link.
+    # This is only run on Linux.
+    if ! test -L /proc/self/exe; then
+        err "unable to find /proc/self/exe. Is /proc mounted? Installation cannot proceed without /proc."
+    fi
+}
+
+need_cmd() {
+    if ! check_cmd "$1"; then
+        err "need '$1' (command not found)"
+    fi
+}
+
+check_cmd() {
+    command -v -- "$1" >/dev/null 2>&1
+}
+
 main() {
   local _arch
   _arch="${ARCH:-$(ensure get_architecture)}"
