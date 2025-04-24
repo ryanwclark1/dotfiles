@@ -4,4 +4,3 @@ finder:
   command: fzf
 shell:
   command: bash
-  finder_command: bash
