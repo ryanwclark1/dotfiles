@@ -424,17 +424,33 @@ configure_shell() {
     fi
   }
 
+  # Create a temporary file for the new configuration
+  local temp_rc="$(mktemp)"
+
   # Add PATH if not already present
   safe_append 'export PATH="$HOME/.local/bin:$PATH"'
   
   # Set editor
   safe_append "export VISUAL=$editor"
   
-  # Initialize tools
-  safe_append 'eval "$(starship init '"$shell_type"' --print-full-init)"'
-  safe_append 'eval "$(zoxide init '"$shell_type"' --cmd cd --hook pwd)"'
-  safe_append 'eval "$(fzf --'"$shell_type"'")'
-  safe_append 'eval "$(atuin init '"$shell_type"'")'
+  # Initialize tools in the correct order
+  case "$shell_type" in
+    bash)
+      safe_append '[ -f ~/.fzf.bash ] && source ~/.fzf.bash'
+      safe_append '. "$HOME/.atuin/bin/env"'
+      safe_append '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh'
+      safe_append 'eval "$(atuin init bash)"'
+      safe_append 'eval "$(starship init bash --print-full-init)"'
+      safe_append 'eval "$(zoxide init bash --cmd cd --hook pwd)"'
+      ;;
+    zsh)
+      safe_append '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+      safe_append '. "$HOME/.atuin/bin/env"'
+      safe_append 'eval "$(atuin init zsh)"'
+      safe_append 'eval "$(starship init zsh --print-full-init)"'
+      safe_append 'eval "$(zoxide init zsh --cmd cd --hook pwd)"'
+      ;;
+  esac
   
   # Source the rc file
   source "$shell_rc"
