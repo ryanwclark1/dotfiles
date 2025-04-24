@@ -405,11 +405,47 @@ assert_nz() {
     if [ -z "$1" ]; then err "found empty string: $2"; fi
 }
 
+# Configure shell
+configure_shell() {
+  local shell_rc="$1"
+  local shell_type="$2"
+  local editor="nano"
+  
+  # Check if VS Code is installed
+  if command -v code &>/dev/null; then
+    editor="code"
+  fi
+
+  # Function to safely append text if it doesn't exist
+  safe_append() {
+    local text="$1"
+    if ! grep -qF "$text" "$shell_rc"; then
+      echo "$text" >> "$shell_rc"
+    fi
+  }
+
+  # Add PATH if not already present
+  safe_append 'export PATH="$HOME/.local/bin:$PATH"'
+  
+  # Set editor
+  safe_append "export VISUAL=$editor"
+  
+  # Initialize tools
+  safe_append 'eval "$(starship init '"$shell_type"' --print-full-init)"'
+  safe_append 'eval "$(zoxide init '"$shell_type"' --cmd cd --hook pwd)"'
+  safe_append 'eval "$(fzf --'"$shell_type"'")'
+  safe_append 'eval "$(atuin init '"$shell_type"'")'
+  
+  # Source the rc file
+  source "$shell_rc"
+}
+
 main() {
   local _arch
   _arch="${ARCH:-$(ensure get_architecture)}"
   assert_nz "${_arch}" "arch"
   echo "Detected architecture: ${_arch}"
+  check_installs
 
   # Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
   echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
@@ -461,28 +497,9 @@ main() {
   done
 
   if [ "$shell" = "bash" ]; then
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >>$HOME/.bashrc
-    if [ -f code ]; then
-      echo 'export VISUAL=code' >>$HOME/.bashrc
-    else
-      echo 'export VISUAL=nano' >>$HOME/.bashrc
-    fi
-    echo 'eval "$(starship init bash --print-full-init)"' >>$HOME/.bashrc
-    echo 'eval "$(zoxide init bash --cmd cd --hook pwd)"' >>$HOME/.bashrc
-    echo 'eval "$(fzf --bash)"' >>$HOME/.bashrc
-    echo 'eval "$(atuin init bash)"' >>$HOME/.bashrc
-    source $HOME/.bashrc
-  fi
-
-  if [ "$shell" = "zsh" ]; then
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >>$HOME/.zshrc
-    echo 'export VISUAL=code' >>$HOME/.zshrc
-    # echo 'export EDITOR="$VISUAL"' >> $HOME/.zshrc
-    echo 'eval "$(starship init zsh --print-full-init)"' >>$HOME/.zshrc
-    echo 'eval "$(zoxide init zsh --cmd cd --hook pwd)"' >>$HOME/.zshrc
-    echo 'eval "$(fzf --zsh)"' >>$HOME/.zshrc
-    echo 'eval "$(atuin init zsh)"' >>$HOME/.zshrc
-    source $HOME/.zshrc
+    configure_shell "$HOME/.bashrc" "bash"
+  elif [ "$shell" = "zsh" ]; then
+    configure_shell "$HOME/.zshrc" "zsh"
   fi
 
   echo "Dotfiles and CLI tools setup complete!"
