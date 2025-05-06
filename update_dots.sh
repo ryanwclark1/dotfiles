@@ -14,7 +14,7 @@ DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" 
 # Function to remove existing files
 remove_files() {
     local dest_file="$DESTINATION_DIR/$1"
-    
+
     if [[ -f "$dest_file" ]]; then
         rm -f "$dest_file"
         echo "Removed existing file: $dest_file"
@@ -24,7 +24,7 @@ remove_files() {
 # Function to remove existing directories
 remove_directories() {
     local dest_dir="$DESTINATION_DIR/$1"
-    
+
     if [[ -d "$dest_dir" ]]; then
         rm -rf "$dest_dir"
         echo "Removed existing directory: $dest_dir"
@@ -87,10 +87,10 @@ done
 
 echo "Files and directories copied successfully to $DESTINATION_DIR. Text replacement completed."
 
-if [[ -n $(git status --porcelain) ]]; then
-    git add .
-    git commit -m "Auto-update: $(date)"
-    git push origin main  # Change 'main' to your branch name if different
-else
-    echo "No changes to commit."
-fi
+# if [[ -n $(git status --porcelain) ]]; then
+#     git add .
+#     git commit -m "Auto-update: $(date)"
+#     git push origin main  # Change 'main' to your branch name if different
+# else
+#     echo "No changes to commit."
+# fi
