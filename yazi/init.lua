@@ -40,8 +40,7 @@ require("yatline"):setup({
 	-- permissions_x_fg = "cyan",
 	-- permissions_s_fg = "white",
 
-	-- tab_width = 20,
-	-- tab_use_inverse = false,
+
 
 	-- selected = { icon = "󰻭", fg = "yellow" },
 	-- copied = { icon = "", fg = "green" },
@@ -53,7 +52,10 @@ require("yatline"):setup({
 	-- found = { icon = "󰮕", fg = "blue" },
 	-- processed = { icon = "󰐍", fg = "green" },
 
-	show_background = true,
+	tab_width = 20,
+	tab_use_inverse = false,
+
+	show_background = false,
 
 	display_header_line = true,
 	display_status_line = true,
