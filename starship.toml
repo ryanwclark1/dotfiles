@@ -1,7 +1,7 @@
 add_newline = true
 command_timeout = 500
 follow_symlinks = true
-format = "[](fg:#ca9ee6)$os$username$hostname$localip$container[](bg:#babbf1 fg:#ca9ee6)$directory[](fg:#babbf1 bg:#c6d0f5)$git_branch$git_status[](fg:#c6d0f5 bg:#eebebe)$python$bun$c$cmake$dart$golang$haskell$java$kotlin$kubernetes$lua$nodejs$php$rust$swift$zig[](fg:#eebebe bg:#f2d5cf)$docker_context$nix_shell[](fg:#f2d5cf)$fill[](fg:#ca9ee6)$time[](fg:#ca9ee6)$line_break$character"
+format = "[](fg:#ca9ee6)$os$username$hostname$localip$container[](bg:#babbf1 fg:#ca9ee6)$directory[](fg:#babbf1 bg:#c6d0f5)$git_branch$git_status[](fg:#c6d0f5 bg:#eebebe)$python$bun$c$cmake$dart$deno$golang$haskell$java$kotlin$kubernetes$lua$nodejs$php$rust$swift$zig[](fg:#eebebe bg:#f2d5cf)$docker_context$nix_shell[](fg:#f2d5cf)$fill[](fg:#ca9ee6)$time[](fg:#ca9ee6)$line_break$character"
 scan_timeout = 30
 
 [aws]
@@ -63,8 +63,14 @@ format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
 style = "bg:#eebebe"
 symbol = " "
 
+[deno]
+disabled = false
+format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
+style = "bg:#eebebe"
+symbol = " "
+
 [directory]
-format = "[ $path ]($style)"
+format = "[$path]($style)"
 home_symbol = "~"
 read_only = " "
 style = "fg:#303446 bg:#babbf1"
@@ -87,13 +93,28 @@ format = "[ $symbol( $context) ]($style)"
 style = "fg:#303446 bg:#f2d5cf"
 symbol = " "
 
+[dotnet]
+disabled = false
+format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
+style = "bg:#eebebe"
+symbol = " "
+
 [elixir]
+disabled = false
+format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
+style = "bg:#eebebe"
 symbol = " "
 
 [elm]
+disabled = false
+format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
+style = "bg:#eebebe"
 symbol = " "
 
 [erlang]
+disabled = false
+format = "[[ $symbol( $version) ](fg:#303446 bg:#eebebe)]($style)"
+style = "bg:#eebebe"
 symbol = " "
 
 [fill]
@@ -107,9 +128,9 @@ symbol = "󱇶 "
 
 [git_branch]
 disabled = false
-format = "[[ $symbol $branch ](fg:#303446 bg:#c6d0f5)]($style)"
+format = "[[ $symbol$branch ](fg:#303446 bg:#c6d0f5)]($style)"
 style = "bg:#c6d0f5"
-symbol = ""
+symbol = ""
 
 [git_status]
 disabled = false
@@ -128,7 +149,7 @@ style = "bg:#eebebe"
 symbol = " "
 
 [hg_branch]
-symbol = " "
+symbol = ""
 
 [hostname]
 disabled = false
@@ -288,7 +309,7 @@ symbol = "󱁢 "
 
 [time]
 disabled = false
-format = "[  $time]($style)"
+format = "[ $time]($style)"
 style = "bg:#ca9ee6 fg:#303446"
 use_12hr = false
 
