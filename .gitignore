@@ -1,11 +1,8 @@
-CLAUDE.md
 
 # Default meson build dir
 /build
 
 /outputs
-
-*~
 
 # ccls
 /.ccls-cache
@@ -29,3 +26,4 @@ flake-regressions
 
 # direnv
 .direnv/
+CLAUDE.md
