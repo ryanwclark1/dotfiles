@@ -2,525 +2,446 @@
 set -e
 
 echo "Setting up dotfiles and installing CLI tools..."
-shell=$(basename $SHELL)
 
-# Define source and destination directories
-DOTFILES_DIR=$HOME/dotfiles
-CONFIG_DIR=$HOME/.config
-SCRIPTS_DIR=$CONFIG_DIR/scripts
-BIN_DIR=$HOME/.local/bin
-# list of scripts to be removed from the scripts directory
-SCRIPTS_TO_REMOVE=(sysz.sh wifi.sh)
-ATUIN_CONFIG="$CONFIG_DIR/atuin/config.toml"
+# Dynamic path detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$SCRIPT_DIR"
+CONFIG_DIR="$HOME/.config"
+SCRIPTS_DIR="$CONFIG_DIR/scripts"
+BIN_DIR="$HOME/.local/bin"
+
+# Required tools for validation
 REQUIRED_TOOLS=(git curl jq)
-# Ensure $HOME/.local/bin exists
-mkdir -p $HOME/.local/bin
 
-# Install fzf
-install_fzf() {
-  echo "Installing fzf..."
-  git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf || {
-    echo "Failed to install fzf"
-  }
-  $HOME/.fzf/install --all || {
-    echo "Failed to install fzf"
-  }
-  cp $HOME/.fzf/bin/* $HOME/.local/bin
-  rm -rf $HOME/.fzf
-}
-
-# Install fd
-install_fd() {
-  echo "Installing fd..."
-  latest_version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | jq -r .tag_name)
-  if [ -f /etc/debian_version ]; then
-    curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd_${latest_version#v}_amd64.deb" || {
-      echo "Failed to download fd"
-    }
-    sudo dpkg -i "fd_${latest_version#v}_amd64.deb" || {
-      echo "Failed to install fd"
-    }
-    rm "fd_${latest_version#v}_amd64.deb"
-  else
-    curl -LO "https://github.com/sharkdp/fd/releases/download/$latest_version/fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" || {
-      echo "Failed to download fd"
-    }
-    tar -xzf "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz" -C $HOME/.local/bin --strip-components=1 || {
-      echo "Failed to extract fd"
-    }
-    rm "fd-${latest_version}-x86_64-unknown-linux-gnu.tar.gz"
-  fi
-}
-
-# Install ripgrep
-install_rg() {
-  echo "Installing ripgrep..."
-  latest_version=$(curl -s https://api.github.com/repos/BurntSushi/ripgrep/releases/latest | jq -r .tag_name)
-  if [ -f /etc/debian_version ]; then
-    curl -LO "https://github.com/BurntSushi/ripgrep/releases/download/$latest_version/ripgrep_${latest_version#v}-1_amd64.deb" || {
-      echo "Failed to download ripgrep"
-    }
-    sudo dpkg -i "ripgrep_${latest_version#v}-1_amd64.deb" || {
-      echo "Failed to install ripgrep"
-    }
-    rm "ripgrep_${latest_version#v}-1_amd64.deb"
-  else
-    echo "Skipping ripgrep installation..."
-    # curl -LO "https://github.com/BurntSushi/ripgrep/releases/download/$latest_version/ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" || { echo "Failed to download ripgrep"; exit 1; }
-    # tar -xzf "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz" -C $HOME/.local/bin --strip-components=1 || { echo "Failed to extract ripgrep"; exit 1; }
-    # rm "ripgrep-${latest_version#v}-x86_64-unknown-linux-musl.tar.gz"
-  fi
-}
-
-# Install atuin
-install_atuin() {
-  echo "Installing atuin..."
-  if ! curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh; then
-    echo "Failed to install atuin"
-  fi
-}
-
-# Install starship
-install_starship() {
-  echo "Installing starship..."
-  curl -fsSL https://starship.rs/install.sh | sh -s -- -y || {
-    echo "Failed to install starship"
-    exit 1
-  }
-}
-
-# Install zoxide
-install_zoxide() {
-  echo "Installing zoxide..."
-  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh || {
-    echo "Failed to install zoxide"
-    exit 1
-  }
-}
-
-# Install k9s
-install_k9s() {
-  echo "Installing k9s..."
-  if [ -f /etc/debian_version ]; then
-    if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb; then
-      echo "Failed to download k9s"
-    fi
-    if ! sudo dpkg -i k9s_linux_amd64.deb; then
-      echo "Failed to install k9s"
-    fi
-    rm k9s_linux_amd64.deb
-  elif [ -n "$(uname -m)" ]; then
-    if ! curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_linux_$(uname -m).tar.gz; then
-      echo "Failed to download k9s"
-    fi
-    if ! tar -xzf k9s_linux_*.tar.gz -C $HOME/.local/bin; then
-      echo "Failed to extract k9s"
-    fi
-    rm k9s_linux_*.tar.gz
-  else
-    echo "Failed to install k9s"
-  fi
-}
-
-check_installs() {
-  if ! command -v fzf &>/dev/null; then
-    install_fzf
-  fi
-
-  if ! command -v fd &>/dev/null; then
-    install_fd
-  fi
-
-  if ! command -v rg &>/dev/null; then
-    install_rg
-  fi
-
-  if ! command -v atuin &>/dev/null; then
-    install_atuin
-  fi
-
-  if ! command -v starship &>/dev/null; then
-    install_starship
-  fi
-
-  if ! command -v zoxide &>/dev/null; then
-    install_zoxide
-  fi
-
-  if ! command -v k9s &>/dev/null; then
-    install_k9s
-  fi
-}
-
-check_proc() {
-    # Check for /proc by looking for the /proc/self/exe link.
-    # This is only run on Linux.
-    if ! test -L /proc/self/exe ; then
-        err "fatal: Unable to find /proc/self/exe.  Is /proc mounted?  Installation cannot proceed without /proc."
-    fi
-}
-
-need_cmd() {
-    if ! check_cmd "$1"; then
-        err "need '$1' (command not found)"
-    fi
-}
-
-check_cmd() {
-    command -v "$1" > /dev/null 2>&1
-}
-
-get_architecture() {
-  local _ostype _cputype _bitness _arch _clibtype
-  _ostype="$(uname -s)"
-  _cputype="$(uname -m)"
-  _clibtype="musl"
-
-  if [ "${_ostype}" = Linux ]; then
-    if [ "$(uname -o || true)" = Android ]; then
-      _ostype=Android
-    fi
-  fi
-
-  if [ "${_ostype}" = Darwin ] && [ "${_cputype}" = i386 ]; then
-    # Darwin `uname -m` lies
-    if sysctl hw.optional.x86_64 | grep -q ': 1'; then
-      _cputype=x86_64
-    fi
-  fi
-
-  if [ "${_ostype}" = SunOS ]; then
-    # Both Solaris and illumos presently announce as "SunOS" in "uname -s"
-    # so use "uname -o" to disambiguate.  We use the full path to the
-    # system uname in case the user has coreutils uname first in PATH,
-    # which has historically sometimes printed the wrong value here.
-    if [ "$(/usr/bin/uname -o || true)" = illumos ]; then
-      _ostype=illumos
-    fi
-
-    # illumos systems have multi-arch userlands, and "uname -m" reports the
-    # machine hardware name; e.g., "i86pc" on both 32- and 64-bit x86
-    # systems.  Check for the native (widest) instruction set on the
-    # running kernel:
-    if [ "${_cputype}" = i86pc ]; then
-      _cputype="$(isainfo -n)"
-    fi
-  fi
-
-  case "${_ostype}" in
-  Android)
-    _ostype=linux-android
-    ;;
-  Linux)
-    check_proc
-    _ostype=unknown-linux-${_clibtype}
-    _bitness=$(get_bitness)
-    ;;
-  FreeBSD)
-    _ostype=unknown-freebsd
-    ;;
-  NetBSD)
-    _ostype=unknown-netbsd
-    ;;
-  DragonFly)
-    _ostype=unknown-dragonfly
-    ;;
-  Darwin)
-    _ostype=apple-darwin
-    ;;
-  illumos)
-    _ostype=unknown-illumos
-    ;;
-  MINGW* | MSYS* | CYGWIN* | Windows_NT)
-    _ostype=pc-windows-msvc
-    ;;
-  *)
-    err "unrecognized OS type: ${_ostype}"
-    ;;
-  esac
-
-  case "${_cputype}" in
-  i386 | i486 | i686 | i786 | x86)
-    _cputype=i686
-    ;;
-  xscale | arm)
-    _cputype=arm
-    if [ "${_ostype}" = "linux-android" ]; then
-      _ostype=linux-androideabi
-    fi
-    ;;
-  armv6l)
-    _cputype=arm
-    if [ "${_ostype}" = "linux-android" ]; then
-      _ostype=linux-androideabi
-    else
-      _ostype="${_ostype}eabihf"
-    fi
-    ;;
-  armv7l | armv8l)
-    _cputype=armv7
-    if [ "${_ostype}" = "linux-android" ]; then
-      _ostype=linux-androideabi
-    else
-      _ostype="${_ostype}eabihf"
-    fi
-    ;;
-  aarch64 | arm64)
-    _cputype=aarch64
-    ;;
-  x86_64 | x86-64 | x64 | amd64)
-    _cputype=x86_64
-    ;;
-  mips)
-    _cputype=$(get_endianness mips '' el)
-    ;;
-  mips64)
-    if [ "${_bitness}" -eq 64 ]; then
-      # only n64 ABI is supported for now
-      _ostype="${_ostype}abi64"
-      _cputype=$(get_endianness mips64 '' el)
-    fi
-    ;;
-  ppc)
-    _cputype=powerpc
-    ;;
-  ppc64)
-    _cputype=powerpc64
-    ;;
-  ppc64le)
-    _cputype=powerpc64le
-    ;;
-  s390x)
-    _cputype=s390x
-    ;;
-  riscv64)
-    _cputype=riscv64gc
-    ;;
-  *)
-    err "unknown CPU type: ${_cputype}"
-    ;;
-  esac
-
-  # Detect 64-bit linux with 32-bit userland
-  if [ "${_ostype}" = unknown-linux-musl ] && [ "${_bitness}" -eq 32 ]; then
-    case ${_cputype} in
-    x86_64)
-      # 32-bit executable for amd64 = x32
-      if is_host_amd64_elf; then {
-        err "x32 userland is unsupported"
-      }; else
-        _cputype=i686
-      fi
-      ;;
-    mips64)
-      _cputype=$(get_endianness mips '' el)
-      ;;
-    powerpc64)
-      _cputype=powerpc
-      ;;
-    aarch64)
-      _cputype=armv7
-      if [ "${_ostype}" = "linux-android" ]; then
-        _ostype=linux-androideabi
-      else
-        _ostype="${_ostype}eabihf"
-      fi
-      ;;
-    riscv64gc)
-      err "riscv64 with 32-bit userland unsupported"
-      ;;
-    *) ;;
+# Architecture and platform detection
+detect_platform() {
+    local os arch platform
+    
+    # Detect OS
+    case "$(uname -s)" in
+        Darwin*) os="darwin" ;;
+        Linux*)  os="linux" ;;
+        *)       error "Unsupported operating system: $(uname -s)" ;;
     esac
-  fi
-
-  # Detect armv7 but without the CPU features Rust needs in that build,
-  # and fall back to arm.
-  # See https://github.com/rust-lang/rustup.rs/issues/587.
-  if [ "${_ostype}" = "unknown-linux-musleabihf" ] && [ "${_cputype}" = armv7 ]; then
-    if ensure grep '^Features' /proc/cpuinfo | grep -q -v neon; then
-      # At least one processor does not have NEON.
-      _cputype=arm
-    fi
-  fi
-
-  _arch="${_cputype}-${_ostype}"
-  echo "${_arch}"
+    
+    # Detect architecture
+    case "$(uname -m)" in
+        x86_64|amd64) arch="amd64" ;;
+        arm64|aarch64) arch="arm64" ;;
+        armv7l) arch="armv7" ;;
+        *)      error "Unsupported architecture: $(uname -m)" ;;
+    esac
+    
+    platform="${os}-${arch}"
+    echo "$platform"
 }
 
-get_bitness() {
-    need_cmd head
-    # Architecture detection without dependencies beyond coreutils.
-    # ELF files start out "\x7fELF", and the following byte is
-    #   0x01 for 32-bit and
-    #   0x02 for 64-bit.
-    # The printf builtin on some shells like dash only supports octal
-    # escape sequences, so we use those.
-    local _current_exe_head
-    _current_exe_head=$(head -c 5 /proc/self/exe)
-    if [ "${_current_exe_head}" = "$(printf '\177ELF\001')" ]; then
-        echo 32
-    elif [ "${_current_exe_head}" = "$(printf '\177ELF\002')" ]; then
-        echo 64
+# Global platform variables
+PLATFORM=$(detect_platform)
+OS=$(echo "$PLATFORM" | cut -d'-' -f1)
+ARCH=$(echo "$PLATFORM" | cut -d'-' -f2)
+
+# Tools to install with their installation methods
+declare -A TOOLS=(
+    ["fzf"]="install_from_git"
+    ["fd"]="install_from_github"
+    ["rg"]="install_from_github"
+    ["atuin"]="install_from_script"
+    ["starship"]="install_from_script"
+    ["zoxide"]="install_from_script"
+    ["k9s"]="install_from_github"
+)
+
+# Tool-specific configuration with platform support
+declare -A TOOL_CONFIG=(
+    ["fzf_repo"]="https://github.com/junegunn/fzf.git"
+    ["fzf_install_script"]="install --all"
+    
+    ["fd_repo"]="sharkdp/fd"
+    ["fd_debian_pattern"]="fd_{version}_amd64.deb"
+    ["fd_linux_amd64_pattern"]="fd-{version}-x86_64-unknown-linux-gnu.tar.gz"
+    ["fd_linux_arm64_pattern"]="fd-{version}-aarch64-unknown-linux-gnu.tar.gz"
+    ["fd_darwin_amd64_pattern"]="fd-{version}-x86_64-apple-darwin.tar.gz"
+    ["fd_darwin_arm64_pattern"]="fd-{version}-aarch64-apple-darwin.tar.gz"
+    
+    ["rg_repo"]="BurntSushi/ripgrep"
+    ["rg_debian_pattern"]="ripgrep_{version}-1_amd64.deb"
+    ["rg_linux_amd64_pattern"]="ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz"
+    ["rg_linux_arm64_pattern"]="ripgrep-{version}-aarch64-unknown-linux-gnu.tar.gz"
+    ["rg_darwin_amd64_pattern"]="ripgrep-{version}-x86_64-apple-darwin.tar.gz"
+    ["rg_darwin_arm64_pattern"]="ripgrep-{version}-aarch64-apple-darwin.tar.gz"
+    
+    ["atuin_script"]="https://setup.atuin.sh"
+    ["starship_script"]="https://starship.rs/install.sh"
+    ["zoxide_script"]="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
+    
+    ["k9s_repo"]="derailed/k9s"
+    ["k9s_debian_pattern"]="k9s_linux_amd64.deb"
+    ["k9s_linux_amd64_pattern"]="k9s_linux_amd64.tar.gz"
+    ["k9s_linux_arm64_pattern"]="k9s_linux_arm64.tar.gz"
+    ["k9s_darwin_amd64_pattern"]="k9s_darwin_amd64.tar.gz"
+    ["k9s_darwin_arm64_pattern"]="k9s_darwin_arm64.tar.gz"
+)
+
+# Utility functions
+log() {
+    echo "[$1] $2"
+}
+
+error() {
+    log "ERROR" "$1" >&2
+    exit 1
+}
+
+check_dependencies() {
+    log "INFO" "Checking required dependencies..."
+    for tool in "${REQUIRED_TOOLS[@]}"; do
+        if ! command -v "$tool" &>/dev/null; then
+            error "Required tool '$tool' is not installed"
+        fi
+    done
+}
+
+get_latest_version() {
+    local repo="$1"
+    curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r .tag_name
+}
+
+# Generic installer function
+install_tool() {
+    local tool="$1"
+    local method="${TOOLS[$tool]}"
+    
+    log "INFO" "Installing $tool using method: $method"
+    
+    case "$method" in
+        "install_from_git")
+            install_from_git "$tool"
+            ;;
+        "install_from_github")
+            install_from_github "$tool"
+            ;;
+        "install_from_script")
+            install_from_script "$tool"
+            ;;
+        *)
+            error "Unknown installation method: $method for tool: $tool"
+            ;;
+    esac
+}
+
+install_from_git() {
+    local tool="$1"
+    local repo_key="${tool}_repo"
+    local repo="${TOOL_CONFIG[$repo_key]}"
+    local install_script_key="${tool}_install_script"
+    local install_script="${TOOL_CONFIG[$install_script_key]}"
+    
+    local temp_dir="$HOME/.${tool}_temp"
+    
+    if git clone --depth 1 "$repo" "$temp_dir"; then
+        cd "$temp_dir"
+        if ./$install_script; then
+            # Copy binaries to local bin
+            if [[ -d "bin" ]]; then
+                cp bin/* "$BIN_DIR/" 2>/dev/null || true
+            fi
+            cd - > /dev/null
+            rm -rf "$temp_dir"
+            log "INFO" "$tool installed successfully"
+        else
+            rm -rf "$temp_dir"
+            error "Failed to install $tool"
+        fi
     else
-        err "unknown platform bitness"
+        error "Failed to clone $tool repository"
     fi
 }
 
-get_endianness() {
-    local cputype="$1"
-    local suffix_eb="$2"
-    local suffix_el="$3"
-
-    # detect endianness without od/hexdump, like get_bitness() does.
-    need_cmd head
-    need_cmd tail
-
-    local _current_exe_endianness
-    _current_exe_endianness="$(head -c 6 /proc/self/exe | tail -c 1)"
-    if [ "${_current_exe_endianness}" = "$(printf '\001')" ]; then
-        echo "${cputype}${suffix_el}"
-    elif [ "${_current_exe_endianness}" = "$(printf '\002')" ]; then
-        echo "${cputype}${suffix_eb}"
+install_from_github() {
+    local tool="$1"
+    local repo_key="${tool}_repo"
+    local repo="${TOOL_CONFIG[$repo_key]}"
+    
+    local version=$(get_latest_version "$repo")
+    [[ -z "$version" ]] && error "Failed to get latest version for $tool"
+    
+    # Prefer Debian packages on Linux with apt, otherwise use tarballs
+    if [[ "$OS" == "linux" && -f /etc/debian_version && "$ARCH" == "amd64" ]]; then
+        install_debian_package "$tool" "$repo" "$version"
     else
-        err "unknown platform endianness"
+        install_platform_tarball "$tool" "$repo" "$version"
     fi
 }
 
-is_host_amd64_elf() {
-    need_cmd head
-    need_cmd tail
-    # ELF e_machine detection without dependencies beyond coreutils.
-    # Two-byte field at offset 0x12 indicates the CPU,
-    # but we're interested in it being 0x3E to indicate amd64, or not that.
-    local _current_exe_machine
-    _current_exe_machine=$(head -c 19 /proc/self/exe | tail -c 1)
-    [ "${_current_exe_machine}" = "$(printf '\076')" ]
+install_debian_package() {
+    local tool="$1"
+    local repo="$2"
+    local version="$3"
+    local pattern_key="${tool}_debian_pattern"
+    local pattern="${TOOL_CONFIG[$pattern_key]}"
+    
+    # Replace {version} placeholder
+    local filename="${pattern/\{version\}/${version#v}}"
+    local url="https://github.com/$repo/releases/download/$version/$filename"
+    
+    if curl -LO "$url"; then
+        if sudo dpkg -i "$filename"; then
+            rm "$filename"
+            log "INFO" "$tool installed successfully"
+        else
+            rm "$filename"
+            error "Failed to install $tool package"
+        fi
+    else
+        error "Failed to download $tool package"
+    fi
 }
 
-ensure() {
-    if ! "$@"; then err "command failed: $*"; fi
+install_platform_tarball() {
+    local tool="$1"
+    local repo="$2"
+    local version="$3"
+    local pattern_key="${tool}_${OS}_${ARCH}_pattern"
+    local pattern="${TOOL_CONFIG[$pattern_key]}"
+    
+    # Check if platform-specific pattern exists
+    if [[ -z "$pattern" ]]; then
+        error "No installation pattern found for $tool on $OS-$ARCH"
+    fi
+    
+    # Replace version placeholder
+    local filename="${pattern/\{version\}/${version#v}}"
+    local url="https://github.com/$repo/releases/download/$version/$filename"
+    
+    log "INFO" "Downloading $tool for $OS-$ARCH: $filename"
+    
+    if curl -LO "$url"; then
+        # Try different extraction methods based on the file type
+        if [[ "$filename" == *.tar.gz ]]; then
+            # Try with --strip-components first, then without
+            if tar -xzf "$filename" -C "$BIN_DIR" --strip-components=1 2>/dev/null ||
+               tar -xzf "$filename" -C "$BIN_DIR" 2>/dev/null; then
+                rm "$filename"
+                log "INFO" "$tool installed successfully"
+            else
+                rm "$filename"
+                error "Failed to extract $tool archive"
+            fi
+        elif [[ "$filename" == *.zip ]]; then
+            if command -v unzip &>/dev/null; then
+                if unzip -o "$filename" -d "$BIN_DIR" >/dev/null; then
+                    rm "$filename"
+                    log "INFO" "$tool installed successfully"
+                else
+                    rm "$filename"
+                    error "Failed to extract $tool zip file"
+                fi
+            else
+                rm "$filename"
+                error "unzip command not found, cannot extract $filename"
+            fi
+        else
+            rm "$filename"
+            error "Unsupported archive format for $filename"
+        fi
+    else
+        error "Failed to download $tool from $url"
+    fi
 }
 
-assert_nz() {
-    if [ -z "$1" ]; then err "found empty string: $2"; fi
+install_from_script() {
+    local tool="$1"
+    local script_key="${tool}_script"
+    local script_url="${TOOL_CONFIG[$script_key]}"
+    
+    case "$tool" in
+        "atuin")
+            if curl --proto '=https' --tlsv1.2 -LsSf "$script_url" | sh; then
+                log "INFO" "$tool installed successfully"
+            else
+                error "Failed to install $tool"
+            fi
+            ;;
+        "starship")
+            if curl -fsSL "$script_url" | sh -s -- -y; then
+                log "INFO" "$tool installed successfully"
+            else
+                error "Failed to install $tool"
+            fi
+            ;;
+        "zoxide")
+            if curl -sSfL "$script_url" | sh; then
+                log "INFO" "$tool installed successfully"
+            else
+                error "Failed to install $tool"
+            fi
+            ;;
+        *)
+            error "Unknown script installation for tool: $tool"
+            ;;
+    esac
 }
 
-# Configure shell
+check_and_install_tools() {
+    log "INFO" "Checking and installing tools..."
+    for tool in "${!TOOLS[@]}"; do
+        if ! command -v "$tool" &>/dev/null; then
+            install_tool "$tool"
+        else
+            log "INFO" "$tool is already installed"
+        fi
+    done
+}
+
+setup_directories() {
+    log "INFO" "Setting up directories..."
+    mkdir -p "$BIN_DIR" "$CONFIG_DIR"
+}
+
+copy_configurations() {
+    log "INFO" "Copying configurations from $DOTFILES_DIR to $CONFIG_DIR"
+    
+    # Use rsync for efficient copying
+    if command -v rsync &>/dev/null; then
+        # Exclude the script itself and git files
+        local rsync_cmd="rsync -av --exclude=*.sh --exclude=.git* --exclude=CLAUDE.md"
+        
+        # On macOS, handle extended attributes properly
+        if [[ "$OS" == "darwin" ]]; then
+            rsync_cmd="$rsync_cmd -E"
+        fi
+        
+        $rsync_cmd "$DOTFILES_DIR/" "$CONFIG_DIR/"
+    else
+        # Fallback to manual copying
+        for item in "$DOTFILES_DIR"/*; do
+            local basename_item=$(basename "$item")
+            # Skip script files and git files
+            [[ "$basename_item" == *.sh ]] && continue
+            [[ "$basename_item" == .git* ]] && continue
+            [[ "$basename_item" == "CLAUDE.md" ]] && continue
+            
+            local dest="$CONFIG_DIR/$basename_item"
+            if [[ -d "$item" ]]; then
+                mkdir -p "$dest"
+                if [[ "$OS" == "darwin" ]]; then
+                    cp -R "$item/"* "$dest" 2>/dev/null || cp -r "$item/"* "$dest"
+                else
+                    cp -r "$item/"* "$dest"
+                fi
+            else
+                cp -f "$item" "$dest"
+            fi
+        done
+    fi
+}
+
+setup_scripts() {
+    log "INFO" "Setting up executable scripts..."
+    
+    if [[ -d "$SCRIPTS_DIR" ]]; then
+        # Make all scripts executable
+        chmod +x "$SCRIPTS_DIR"/* 2>/dev/null || true
+        
+        # Copy scripts to bin directory without .sh extension
+        for script in "$SCRIPTS_DIR"/*; do
+            if [[ -f "$script" ]]; then
+                local script_name=$(basename "$script" .sh)
+                cp "$script" "$BIN_DIR/$script_name"
+                chmod +x "$BIN_DIR/$script_name"
+            fi
+        done
+    fi
+}
+
+configure_atuin() {
+    log "INFO" "Configuring atuin for local use..."
+    local atuin_config="$CONFIG_DIR/atuin/config.toml"
+    
+    if [[ -f "$atuin_config" ]]; then
+        chmod +rw "$atuin_config"
+        # Remove sync-related configurations for local setup
+        sed -i '/^key_path *=.*/d' "$atuin_config" 2>/dev/null || true
+        sed -i '/^sync_address *=.*/d' "$atuin_config" 2>/dev/null || true
+        log "INFO" "Atuin configured for local use"
+    fi
+}
+
 configure_shell() {
-  local shell_rc="$1"
-  local shell_type="$2"
-  local editor="nano"
-  
-  # Check if VS Code is installed
-  if command -v code &>/dev/null; then
-    editor="code"
-  fi
-
-  # Function to safely append text if it doesn't exist
-  safe_append() {
-    local text="$1"
-    if ! grep -qF "$text" "$shell_rc"; then
-      echo "$text" >> "$shell_rc"
+    local shell=$(basename "$SHELL")
+    local shell_rc=""
+    
+    case "$shell" in
+        bash) shell_rc="$HOME/.bashrc" ;;
+        zsh) shell_rc="$HOME/.zshrc" ;;
+        *) 
+            log "WARN" "Unsupported shell: $shell. Skipping shell configuration."
+            return
+            ;;
+    esac
+    
+    log "INFO" "Configuring $shell shell..."
+    
+    # Clear any conflicting starship environment variables
+    unset STARSHIP_SHELL STARSHIP_SESSION_KEY
+    
+    # Determine editor
+    local editor="nano"
+    command -v code &>/dev/null && editor="code"
+    
+    # Function to safely append to shell config
+    safe_append() {
+        local text="$1"
+        if ! grep -qF "$text" "$shell_rc" 2>/dev/null; then
+            echo "$text" >> "$shell_rc"
+        fi
+    }
+    
+    # Add essential configurations
+    safe_append 'export PATH="$HOME/.local/bin:$PATH"'
+    safe_append "export VISUAL=$editor"
+    
+    # Add tool initializations based on shell
+    case "$shell" in
+        bash)
+            safe_append '[ -f ~/.fzf.bash ] && source ~/.fzf.bash'
+            safe_append '. "$HOME/.atuin/bin/env" 2>/dev/null || true'
+            safe_append '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh'
+            safe_append 'eval "$(atuin init bash)" 2>/dev/null || true'
+            safe_append 'eval "$(starship init bash --print-full-init)" 2>/dev/null || true'
+            safe_append 'eval "$(zoxide init bash --cmd cd --hook pwd)" 2>/dev/null || true'
+            ;;
+        zsh)
+            safe_append '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+            safe_append '. "$HOME/.atuin/bin/env" 2>/dev/null || true'
+            safe_append 'eval "$(atuin init zsh)" 2>/dev/null || true'
+            safe_append 'eval "$(starship init zsh --print-full-init)" 2>/dev/null || true'
+            safe_append 'eval "$(zoxide init zsh --cmd cd --hook pwd)" 2>/dev/null || true'
+            ;;
+    esac
+    
+    # Initialize starship for current session
+    if command -v starship &>/dev/null; then
+        eval "$(starship init "$shell")" 2>/dev/null || log "WARN" "Starship will be available in new shell sessions"
     fi
-  }
-
-  # Create a temporary file for the new configuration
-  local temp_rc="$(mktemp)"
-
-  # Add PATH if not already present
-  safe_append 'export PATH="$HOME/.local/bin:$PATH"'
-  
-  # Set editor
-  safe_append "export VISUAL=$editor"
-  
-  # Initialize tools in the correct order
-  case "$shell_type" in
-    bash)
-      safe_append '[ -f ~/.fzf.bash ] && source ~/.fzf.bash'
-      safe_append '. "$HOME/.atuin/bin/env"'
-      safe_append '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh'
-      safe_append 'eval "$(atuin init bash)"'
-      safe_append 'eval "$(starship init bash --print-full-init)"'
-      safe_append 'eval "$(zoxide init bash --cmd cd --hook pwd)"'
-      ;;
-    zsh)
-      safe_append '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
-      safe_append '. "$HOME/.atuin/bin/env"'
-      safe_append 'eval "$(atuin init zsh)"'
-      safe_append 'eval "$(starship init zsh --print-full-init)"'
-      safe_append 'eval "$(zoxide init zsh --cmd cd --hook pwd)"'
-      ;;
-  esac
-  
-  # Source the rc file
-  source "$shell_rc"
 }
 
 main() {
-  local _arch
-  _arch="${ARCH:-$(ensure get_architecture)}"
-  assert_nz "${_arch}" "arch"
-  echo "Detected architecture: ${_arch}"
-  check_installs
-
-  # Step 1: Copy files and directories from $HOME/dotfiles to $HOME/.config recursively, overwriting existing files
-  echo "Copying files and directories from $DOTFILES_DIR to $CONFIG_DIR"
-  # rsync -av --delete "$DOTFILES_DIR/" "$CONFIG_DIR/"
-  mkdir -p $HOME/.config
-  for item in $HOME/dotfiles/*; do
-    dest="$HOME/.config/$(basename "$item")"
-    if [ -d "$item" ]; then
-      mkdir -p "$dest"
-      cp -r "$item/"* "$dest"
-    else
-      cp -f "$item" "$dest"
-    fi
-  done
-
-  # Update ATUIN files for local
-  chmod +rw $ATUIN_CONFIG
-  if [[ -f "$ATUIN_CONFIG" ]]; then
-    # Use sed to remove lines that start with key_path or sync_address
-    sed -i '/^key_path *=.*/d' "$ATUIN_CONFIG"
-    sed -i '/^sync_address *=.*/d' "$ATUIN_CONFIG"
-    echo "Lines removed from $ATUIN_CONFIG"
-  else
-    echo "Config file not found: $ATUIN_CONFIG"
-  fi
-
-  # Remove a list of script that are not applicable to the current system
-  for script in "${SCRIPTS_TO_REMOVE[@]}"; do
-    rm -f "$SCRIPTS_DIR/$script"
-    echo "Removed $SCRIPTS_DIR/$script"
-  done
-
-  # Step 2: Make sure files in $HOME/.config/scripts are executable
-  echo "Setting execute permissions for files in $SCRIPTS_DIR"
-  for script in "$SCRIPTS_DIR"/*; do
-    if [ -f "$script" ]; then
-      chmod +x "$script"
-    fi
-  done
-
-  # Step 3: Copy executable scripts to $HOME/bin and remove the .sh extension
-  echo "Copying scripts from $SCRIPTS_DIR to $BIN_DIR"
-  for script in "$SCRIPTS_DIR"/*; do
-    if [ -f "$script" ]; then
-      # Remove .sh extension and copy to bin directory
-      script_name=$(basename "$script" .sh)
-      cp "$script" "$BIN_DIR/$script_name"
-    fi
-  done
-
-  if [ "$shell" = "bash" ]; then
-    configure_shell "$HOME/.bashrc" "bash"
-  elif [ "$shell" = "zsh" ]; then
-    configure_shell "$HOME/.zshrc" "zsh"
-  fi
-
-  echo "Dotfiles and CLI tools setup complete!"
+    log "INFO" "Starting dotfiles setup..."
+    log "INFO" "Detected platform: $PLATFORM (OS: $OS, Architecture: $ARCH)"
+    
+    check_dependencies
+    setup_directories
+    check_and_install_tools
+    copy_configurations
+    setup_scripts
+    configure_atuin
+    configure_shell
+    
+    log "INFO" "Dotfiles and CLI tools setup complete!"
+    log "INFO" "Please restart your shell or run 'source ~/.${SHELL##*/}rc' to activate changes"
 }
 
-{
-  main "$@" || exit 1
-}
+# Run main function
+main "$@"
