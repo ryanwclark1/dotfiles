@@ -1,0 +1,43 @@
+k9s:
+  disablePodCounting: false
+  imageScans:
+    enable: true
+    exclusions:
+      labels: {}
+      namespaces: []
+  liveViewAutoRefresh: true
+  logger:
+    buffer: 5000
+    showTime: false
+    sinceSeconds: -1
+    tail: 100
+    textWrap: false
+  maxConnRetry: 5
+  noExitOnCtrlC: false
+  readOnly: false
+  refreshRate: 2
+  screenDumpDir: /home/administrator/.local/state/k9s/screen-dumps
+  shellPod:
+    image: busybox:1.37.0
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    namespace: default
+  skin: default_skin
+  skipLatestRevCheck: false
+  thresholds:
+    cpu:
+      critical: 90
+      warn: 70
+    memory:
+      critical: 90
+      warn: 70
+  ui:
+    crumbsless: false
+    defaultsToFullScreen: false
+    enableMouse: false
+    headless: false
+    logoless: false
+    noIcons: false
+    reactive: true
+    skin: default_skin

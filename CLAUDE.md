@@ -152,3 +152,4 @@ The repository uses Catppuccin theme variants consistently across:
 - **fzf integration** throughout scripts for interactive selection
 - **Git integration** in prompt, file listings, and utility scripts
 - **Tmux integration** with custom modules for system monitoring
+- 
