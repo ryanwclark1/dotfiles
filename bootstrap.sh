@@ -191,7 +191,7 @@ install_debian_package() {
     local filename="${pattern/\{version\}/${version#v}}"
     local url="https://github.com/$repo/releases/download/$version/$filename"
     
-    if curl -LO "$url"; then
+    if curl -L -o "$filename" "$url"; then
         if sudo dpkg -i "$filename"; then
             rm "$filename"
             log "INFO" "$tool installed successfully"
@@ -225,7 +225,7 @@ install_platform_tarball() {
     
     log "INFO" "Downloading $tool for $OS-$ARCH: $filename"
     
-    if curl -LO "$url"; then
+    if curl -L -o "$filename" "$url"; then
         # Try different extraction methods based on the file type
         if [[ "$filename" == *.tar.gz ]]; then
             # Special handling for starship (binary in archive root)
