@@ -264,7 +264,7 @@ install_from_script() {
             fi
             ;;
         "starship")
-            if curl -fsSL "$script_url" | sh -s -- -y; then
+            if curl -sS "$script_url" | sh; then
                 log "INFO" "$tool installed successfully"
             else
                 error "Failed to install $tool"
