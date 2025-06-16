@@ -47,7 +47,7 @@ declare -A TOOLS=(
     ["fd"]="install_from_github"
     ["rg"]="install_from_github"
     ["atuin"]="install_from_script"
-    ["starship"]="install_from_github"
+    ["starship"]="install_from_script"
     ["zoxide"]="install_from_script"
     ["k9s"]="install_from_github"
 )
@@ -79,6 +79,7 @@ declare -A TOOL_CONFIG=(
     ["starship_darwin_arm64_pattern"]="starship-aarch64-apple-darwin.tar.gz"
     
     ["atuin_script"]="https://setup.atuin.sh"
+    ["starship_script"]="https://starship.rs/install.sh"
     ["zoxide_script"]="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
     
     ["k9s_repo"]="derailed/k9s"
@@ -288,7 +289,7 @@ install_from_script() {
             fi
             ;;
         "starship")
-            if curl -sS "$script_url" | sh; then
+            if env -i PATH="$PATH" HOME="$HOME" USER="$USER" curl -sS "$script_url" | sh -s -- --yes --bin-dir "$BIN_DIR"; then
                 log "INFO" "$tool installed successfully"
             else
                 error "Failed to install $tool"
