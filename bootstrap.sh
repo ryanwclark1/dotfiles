@@ -217,7 +217,10 @@ install_platform_tarball() {
     fi
     
     # Replace version placeholder (if it exists)
-    local filename="${pattern/\{version\}/${version#v}}"
+    local filename="$pattern"
+    if [[ "$pattern" == *"{version}"* ]]; then
+        filename="${pattern/\{version\}/${version#v}}"
+    fi
     local url="https://github.com/$repo/releases/download/$version/$filename"
     
     log "INFO" "Downloading $tool for $OS-$ARCH: $filename"
