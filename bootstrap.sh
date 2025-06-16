@@ -47,7 +47,7 @@ declare -A TOOLS=(
     ["fd"]="install_from_github"
     ["rg"]="install_from_github"
     ["atuin"]="install_from_script"
-    ["starship"]="install_from_script"
+    ["starship"]="install_from_github"
     ["zoxide"]="install_from_script"
     ["k9s"]="install_from_github"
 )
@@ -71,8 +71,14 @@ declare -A TOOL_CONFIG=(
     ["rg_darwin_amd64_pattern"]="ripgrep-{version}-x86_64-apple-darwin.tar.gz"
     ["rg_darwin_arm64_pattern"]="ripgrep-{version}-aarch64-apple-darwin.tar.gz"
     
+    ["starship_repo"]="starship/starship"
+    ["starship_linux_amd64_pattern"]="starship-{version}-x86_64-unknown-linux-musl.tar.gz"
+    ["starship_linux_arm64_pattern"]="starship-{version}-aarch64-unknown-linux-musl.tar.gz"
+    ["starship_linux_armv7_pattern"]="starship-{version}-arm-unknown-linux-musleabihf.tar.gz"
+    ["starship_darwin_amd64_pattern"]="starship-{version}-x86_64-apple-darwin.tar.gz"
+    ["starship_darwin_arm64_pattern"]="starship-{version}-aarch64-apple-darwin.tar.gz"
+    
     ["atuin_script"]="https://setup.atuin.sh"
-    ["starship_script"]="https://starship.rs/install.sh"
     ["zoxide_script"]="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
     
     ["k9s_repo"]="derailed/k9s"
@@ -219,9 +225,18 @@ install_platform_tarball() {
     if curl -LO "$url"; then
         # Try different extraction methods based on the file type
         if [[ "$filename" == *.tar.gz ]]; then
-            # Try with --strip-components first, then without
-            if tar -xzf "$filename" -C "$BIN_DIR" --strip-components=1 2>/dev/null ||
-               tar -xzf "$filename" -C "$BIN_DIR" 2>/dev/null; then
+            # Special handling for starship (binary in archive root)
+            if [[ "$tool" == "starship" ]]; then
+                if tar -xzf "$filename" -O starship > "$BIN_DIR/starship" && chmod +x "$BIN_DIR/starship"; then
+                    rm "$filename"
+                    log "INFO" "$tool installed successfully"
+                else
+                    rm "$filename"
+                    error "Failed to extract $tool binary"
+                fi
+            # Try with --strip-components first, then without for other tools
+            elif tar -xzf "$filename" -C "$BIN_DIR" --strip-components=1 2>/dev/null ||
+                 tar -xzf "$filename" -C "$BIN_DIR" 2>/dev/null; then
                 rm "$filename"
                 log "INFO" "$tool installed successfully"
             else
