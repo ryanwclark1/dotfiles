@@ -478,7 +478,20 @@ main() {
     configure_shell
     
     log "INFO" "Dotfiles and CLI tools setup complete!"
-    log "INFO" "Please restart your shell or run 'source ~/.${SHELL##*/}rc' to activate changes"
+    
+    # Source the shell configuration to activate changes
+    local shell_rc=""
+    case "$(basename "$SHELL")" in
+        bash) shell_rc="$HOME/.bashrc" ;;
+        zsh) shell_rc="$HOME/.zshrc" ;;
+    esac
+    
+    if [[ -f "$shell_rc" ]]; then
+        log "INFO" "Activating shell configuration changes..."
+        source "$shell_rc" 2>/dev/null || log "WARN" "Could not source $shell_rc automatically"
+    else
+        log "INFO" "Please restart your shell or run 'source ~/.${SHELL##*/}rc' to activate changes"
+    fi
 }
 
 # Run main function
