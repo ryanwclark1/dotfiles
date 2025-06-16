@@ -72,11 +72,11 @@ declare -A TOOL_CONFIG=(
     ["rg_darwin_arm64_pattern"]="ripgrep-{version}-aarch64-apple-darwin.tar.gz"
     
     ["starship_repo"]="starship/starship"
-    ["starship_linux_amd64_pattern"]="starship-{version}-x86_64-unknown-linux-musl.tar.gz"
-    ["starship_linux_arm64_pattern"]="starship-{version}-aarch64-unknown-linux-musl.tar.gz"
-    ["starship_linux_armv7_pattern"]="starship-{version}-arm-unknown-linux-musleabihf.tar.gz"
-    ["starship_darwin_amd64_pattern"]="starship-{version}-x86_64-apple-darwin.tar.gz"
-    ["starship_darwin_arm64_pattern"]="starship-{version}-aarch64-apple-darwin.tar.gz"
+    ["starship_linux_amd64_pattern"]="starship-x86_64-unknown-linux-musl.tar.gz"
+    ["starship_linux_arm64_pattern"]="starship-aarch64-unknown-linux-musl.tar.gz"
+    ["starship_linux_armv7_pattern"]="starship-arm-unknown-linux-musleabihf.tar.gz"
+    ["starship_darwin_amd64_pattern"]="starship-x86_64-apple-darwin.tar.gz"
+    ["starship_darwin_arm64_pattern"]="starship-aarch64-apple-darwin.tar.gz"
     
     ["atuin_script"]="https://setup.atuin.sh"
     ["zoxide_script"]="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
@@ -216,7 +216,7 @@ install_platform_tarball() {
         error "No installation pattern found for $tool on $OS-$ARCH"
     fi
     
-    # Replace version placeholder
+    # Replace version placeholder (if it exists)
     local filename="${pattern/\{version\}/${version#v}}"
     local url="https://github.com/$repo/releases/download/$version/$filename"
     
@@ -408,6 +408,15 @@ configure_shell() {
     # Function to safely append to shell config
     safe_append() {
         local text="$1"
+        # Ensure the shell config file exists and is writable
+        touch "$shell_rc" 2>/dev/null || {
+            log "WARN" "Cannot create $shell_rc, skipping shell configuration"
+            return 1
+        }
+        chmod +w "$shell_rc" 2>/dev/null || {
+            log "WARN" "Cannot make $shell_rc writable, skipping shell configuration"
+            return 1
+        }
         if ! grep -qF "$text" "$shell_rc" 2>/dev/null; then
             echo "$text" >> "$shell_rc"
         fi
