@@ -289,11 +289,15 @@ install_from_script() {
             fi
             ;;
         "starship")
-            if env -i PATH="$PATH" HOME="$HOME" USER="$USER" curl -sS "$script_url" | sh -s -- --yes --bin-dir "$BIN_DIR"; then
+            # Temporarily override BASE_URL for starship installer only
+            local saved_bin_dir="$BIN_DIR"
+            local saved_base_url="${BASE_URL:-}"
+            if (export BASE_URL="https://github.com/starship/starship/releases"; curl -sS "$script_url" | sh -s -- --yes --bin-dir "$saved_bin_dir"); then
                 log "INFO" "$tool installed successfully"
             else
                 error "Failed to install $tool"
             fi
+            # BASE_URL is automatically restored after the subshell
             ;;
         "zoxide")
             if curl -sSfL "$script_url" | sh; then
