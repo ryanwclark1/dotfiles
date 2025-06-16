@@ -397,6 +397,33 @@ configure_atuin() {
     fi
 }
 
+setup_npm_and_claude() {
+    if ! command -v npm &>/dev/null; then
+        log "WARN" "npm is not installed. Skipping Claude Code installation."
+        log "INFO" "To install npm, install Node.js from https://nodejs.org/"
+        return
+    fi
+    
+    log "INFO" "Setting up npm global directory and installing Claude Code..."
+    
+    # Create npm global directory if it doesn't exist
+    local npm_global_dir="$HOME/.npm-global"
+    if [[ ! -d "$npm_global_dir" ]]; then
+        mkdir -p "$npm_global_dir"
+        log "INFO" "Created npm global directory: $npm_global_dir"
+    fi
+    
+    # Configure npm to use the new prefix
+    npm config set prefix "$npm_global_dir"
+    
+    # Install Claude Code
+    if npm install -g @anthropic-ai/claude-code; then
+        log "INFO" "Claude Code installed successfully"
+    else
+        log "WARN" "Failed to install Claude Code"
+    fi
+}
+
 configure_shell() {
     local shell=$(basename "$SHELL")
     local shell_rc=""
@@ -438,6 +465,7 @@ configure_shell() {
     
     # Add essential configurations
     safe_append 'export PATH="$HOME/.local/bin:$PATH"'
+    safe_append 'export PATH="$HOME/.npm-global/bin:$PATH"'
     safe_append "export VISUAL=$editor"
     
     # Add tool initializations based on shell
@@ -475,6 +503,7 @@ main() {
     copy_configurations
     setup_scripts
     configure_atuin
+    setup_npm_and_claude
     configure_shell
     
     log "INFO" "Dotfiles and CLI tools setup complete!"
