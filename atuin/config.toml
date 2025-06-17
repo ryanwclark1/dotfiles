@@ -52,4 +52,8 @@ common_subcommands = [
     "systemctl",
     "tmux",
     "yarn",
+    "yt-dlp",
+    "uv",
+    "poetry",
+    "claude",
 ]

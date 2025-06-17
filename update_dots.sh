@@ -12,8 +12,15 @@ DEFAULT_FILE_LIST=("starship.toml")
 DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "scripts" "tealdeer")
 
 # Function to remove existing files
+
 remove_files() {
     local dest_file="$DESTINATION_DIR/$1"
+
+    # Skip .bak files
+    if [[ "$dest_file" == *.bak ]]; then
+        echo "Skipping backup file: $dest_file"
+        return
+    fi
 
     if [[ -f "$dest_file" ]]; then
         rm -f "$dest_file"
@@ -53,7 +60,13 @@ copy_directories() {
 
     if [[ -d "$src_dir" ]]; then
         echo "Copying directory: $src_dir -> $dest_dir"
-        cp -rfL "$src_dir" "$dest_dir"  # Use -rL to dereference symbolic links
+        if command -v rsync >/dev/null 2>&1; then
+            rsync -aL --exclude='*.bak' --exclude='*.backup' "$src_dir/" "$dest_dir/"
+        else
+            cp -rfL "$src_dir" "$dest_dir"
+            # Remove any .bak files that were copied
+            find "$dest_dir" -type f \( -name '*.bak' -o -name '*.backup' \) -delete
+        fi
         chown -R "$USER" "$dest_dir"
         find "$dest_dir" -type f -exec chmod u+w {} \;
         echo "Copied directory: $src_dir -> $dest_dir"

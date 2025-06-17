@@ -1,6 +1,0 @@
-client:
-  tealdeer: true
-finder:
-  command: fzf
-shell:
-  command: bash
