@@ -23,9 +23,11 @@ This is a personal dotfiles repository that manages configuration files and util
 - **Dependency Validation**: Checks for required tools (git, curl, jq) before proceeding
 - **Configurable Tool Installation**: Uses associative arrays to define tools and installation methods
 - **Multiple Install Methods**: Supports Git repos, GitHub releases, and installation scripts
+- **NPM Integration**: Automatically sets up npm global directory and installs Claude Code
 - **Intelligent File Copying**: Uses rsync when available, falls back to manual copying with platform-specific options
 - **Consistent Error Handling**: Structured logging and error reporting throughout
 - **Shell-Aware Configuration**: Automatically configures bash or zsh with proper tool initialization
+- **Automatic Configuration Activation**: Sources shell configuration to activate changes immediately
 
 ### File Structure Pattern
 
@@ -96,7 +98,15 @@ Platform detection is automatic and tools are downloaded for the correct archite
 The bootstrap script automatically handles starship initialization issues, but if the prompt still isn't working:
 - Run `./scripts/fix-starship` to manually clear conflicting environment variables
 - This typically happens when starship was previously initialized for zsh but current session is bash
-- The bootstrap script now automatically clears `STARSHIP_SHELL` and `STARSHIP_SESSION_KEY` variables and reinitializes for the current shell
+- The bootstrap script uses the official starship installer and handles environment variable conflicts automatically
+
+#### NPM and Claude Code Setup
+The bootstrap script automatically sets up a safe npm global directory:
+- Creates `~/.npm-global/` directory for user-writable npm packages
+- Configures npm to use this directory as the global prefix
+- Adds `~/.npm-global/bin` to PATH for globally installed packages
+- Installs Claude Code (`@anthropic-ai/claude-code`) if npm is available
+- If npm is not installed, provides guidance on installing Node.js
 
 ### Development Tools Available
 - **fzf**: Fuzzy finder with custom git integration (`fzf-git` script)
@@ -105,10 +115,12 @@ The bootstrap script automatically handles starship initialization issues, but i
 - **eza**: Modern `ls` replacement with git integration
 - **fd**: Fast file finder
 - **atuin**: Shell history with sync capabilities
-- **starship**: Cross-shell prompt
+- **starship**: Cross-shell prompt (installed via official script)
 - **zoxide**: Smart directory jumping
 - **yazi**: Terminal file manager
 - **tmux**: Terminal multiplexer with custom configuration
+- **k9s**: Kubernetes cluster management
+- **Claude Code**: AI-powered coding assistant (installed via npm if available)
 
 ### Utility Scripts
 All scripts in `scripts/` are available as commands after running `bootstrap.sh`:
@@ -130,8 +142,12 @@ All scripts in `scripts/` are available as commands after running `bootstrap.sh`
 When `bootstrap.sh` runs:
 - Configs are copied to `~/.config/`
 - Scripts are made executable and copied to `~/.local/bin/`
+- NPM global directory is set up at `~/.npm-global/` (if npm is available)
+- Claude Code is installed globally via npm (if npm is available)
 - Shell configurations are updated (`.bashrc` or `.zshrc`)
+- PATH is updated to include `~/.local/bin` and `~/.npm-global/bin`
 - Tools are installed if not present
+- Shell configuration is automatically sourced to activate changes
 
 When `update_dots.sh` runs:
 - Current configs are copied back from `~/.config/` to this repository
