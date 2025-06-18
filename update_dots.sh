@@ -9,7 +9,7 @@ DESTINATION_DIR="$SCRIPT_DIR"
 
 # Default file and directory lists (relative to $SOURCE_DIR)
 DEFAULT_FILE_LIST=("starship.toml")
-DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "scripts" "tealdeer")
+DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "scripts" "tealdeer", "yazi")
 
 # Function to remove existing files
 
