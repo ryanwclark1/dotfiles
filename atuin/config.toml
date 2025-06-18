@@ -1,0 +1,59 @@
+auto_sync = true
+dialect = "us"
+enter_accept = false
+exit_mode = "return-original"
+filter_mode = "global"
+filter_mode_shell_up_key_binding = "global"
+history_format = "history list"
+key_path = "/home/administrator/.config/sops-nix/secrets/atuin-key"
+keymap_mode = "vim-normal"
+local_timeout = 5
+max_preview_height = 4
+network_connection_timeout = 5
+network_timeout = 30
+prefers_reduced_motion = false
+search_mode = "fuzzy"
+search_mode_shell_up_key_binding = "fuzzy"
+secrets_filter = false
+show_help = true
+show_preview = true
+show_tabs = true
+store_failed = true
+style = "auto"
+sync_address = "http://100.112.124.7:8888"
+sync_frequency = "1m"
+update_check = false
+workspace = false
+
+[keymap_cursor]
+emacs = "blink-block"
+vim_insert = "blink-block"
+vim_normal = "steady-block"
+
+[stats]
+common_prefix = ["sudo", "noti"]
+common_subcommands = [
+    "apt",
+    "cargo",
+    "composer",
+    "dnf",
+    "docker",
+    "git",
+    "go",
+    "ip",
+    "kubectl",
+    "nix",
+    "nmcli",
+    "npm",
+    "pecl",
+    "pnpm",
+    "podman",
+    "port",
+    "systemctl",
+    "tmux",
+    "yarn",
+    "yt-dlp",
+    "uv",
+    "poetry",
+    "claude",
+]

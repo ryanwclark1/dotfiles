@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Fix starship prompt when it's not working in bash
+# This script clears conflicting environment variables and reinitializes starship
+
+echo "Fixing starship prompt for bash..."
+
+# Clear any conflicting starship environment variables
+unset STARSHIP_SHELL STARSHIP_SESSION_KEY
+
+# Check if starship is available
+if ! command -v starship &>/dev/null; then
+    echo "Error: starship command not found"
+    exit 1
+fi
+
+# Reinitialize starship for bash
+if eval "$(starship init bash)"; then
+    echo "Starship successfully reinitialized for bash"
+    echo "Your prompt should now work correctly"
+else
+    echo "Error: Failed to initialize starship"
+    exit 1
+fi
