@@ -16,14 +16,14 @@ REQUIRED_TOOLS=(git curl jq)
 # Architecture and platform detection
 detect_platform() {
     local os arch platform
-    
+
     # Detect OS
     case "$(uname -s)" in
         Darwin*) os="darwin" ;;
         Linux*)  os="linux" ;;
         *)       error "Unsupported operating system: $(uname -s)" ;;
     esac
-    
+
     # Detect architecture
     case "$(uname -m)" in
         x86_64|amd64) arch="amd64" ;;
@@ -31,7 +31,7 @@ detect_platform() {
         armv7l) arch="armv7" ;;
         *)      error "Unsupported architecture: $(uname -m)" ;;
     esac
-    
+
     platform="${os}-${arch}"
     echo "$platform"
 }
@@ -56,32 +56,32 @@ declare -A TOOLS=(
 declare -A TOOL_CONFIG=(
     ["fzf_repo"]="https://github.com/junegunn/fzf.git"
     ["fzf_install_script"]="install --all"
-    
+
     ["fd_repo"]="sharkdp/fd"
     ["fd_debian_pattern"]="fd_{version}_amd64.deb"
     ["fd_linux_amd64_pattern"]="fd-{version}-x86_64-unknown-linux-gnu.tar.gz"
     ["fd_linux_arm64_pattern"]="fd-{version}-aarch64-unknown-linux-gnu.tar.gz"
     ["fd_darwin_amd64_pattern"]="fd-{version}-x86_64-apple-darwin.tar.gz"
     ["fd_darwin_arm64_pattern"]="fd-{version}-aarch64-apple-darwin.tar.gz"
-    
+
     ["rg_repo"]="BurntSushi/ripgrep"
     ["rg_debian_pattern"]="ripgrep_{version}-1_amd64.deb"
     ["rg_linux_amd64_pattern"]="ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz"
     ["rg_linux_arm64_pattern"]="ripgrep-{version}-aarch64-unknown-linux-gnu.tar.gz"
     ["rg_darwin_amd64_pattern"]="ripgrep-{version}-x86_64-apple-darwin.tar.gz"
     ["rg_darwin_arm64_pattern"]="ripgrep-{version}-aarch64-apple-darwin.tar.gz"
-    
+
     ["starship_repo"]="starship/starship"
     ["starship_linux_amd64_pattern"]="starship-x86_64-unknown-linux-musl.tar.gz"
     ["starship_linux_arm64_pattern"]="starship-aarch64-unknown-linux-musl.tar.gz"
     ["starship_linux_armv7_pattern"]="starship-arm-unknown-linux-musleabihf.tar.gz"
     ["starship_darwin_amd64_pattern"]="starship-x86_64-apple-darwin.tar.gz"
     ["starship_darwin_arm64_pattern"]="starship-aarch64-apple-darwin.tar.gz"
-    
+
     ["atuin_script"]="https://setup.atuin.sh"
     ["starship_script"]="https://starship.rs/install.sh"
     ["zoxide_script"]="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
-    
+
     ["k9s_repo"]="derailed/k9s"
     ["k9s_debian_pattern"]="k9s_linux_amd64.deb"
     ["k9s_linux_amd64_pattern"]="k9s_linux_amd64.tar.gz"
@@ -118,9 +118,9 @@ get_latest_version() {
 install_tool() {
     local tool="$1"
     local method="${TOOLS[$tool]}"
-    
+
     log "INFO" "Installing $tool using method: $method"
-    
+
     case "$method" in
         "install_from_git")
             install_from_git "$tool"
@@ -143,9 +143,9 @@ install_from_git() {
     local repo="${TOOL_CONFIG[$repo_key]}"
     local install_script_key="${tool}_install_script"
     local install_script="${TOOL_CONFIG[$install_script_key]}"
-    
+
     local temp_dir="$HOME/.${tool}_temp"
-    
+
     if git clone --depth 1 "$repo" "$temp_dir"; then
         cd "$temp_dir"
         if ./$install_script; then
@@ -169,10 +169,10 @@ install_from_github() {
     local tool="$1"
     local repo_key="${tool}_repo"
     local repo="${TOOL_CONFIG[$repo_key]}"
-    
+
     local version=$(get_latest_version "$repo")
     [[ -z "$version" ]] && error "Failed to get latest version for $tool"
-    
+
     # Prefer Debian packages on Linux with apt, otherwise use tarballs
     if [[ "$OS" == "linux" && -f /etc/debian_version && "$ARCH" == "amd64" ]]; then
         install_debian_package "$tool" "$repo" "$version"
@@ -187,11 +187,11 @@ install_debian_package() {
     local version="$3"
     local pattern_key="${tool}_debian_pattern"
     local pattern="${TOOL_CONFIG[$pattern_key]}"
-    
+
     # Replace {version} placeholder
     local filename="${pattern/\{version\}/${version#v}}"
     local url="https://github.com/$repo/releases/download/$version/$filename"
-    
+
     if curl -L -o "$filename" "$url"; then
         if sudo dpkg -i "$filename"; then
             rm "$filename"
@@ -211,27 +211,27 @@ install_platform_tarball() {
     local version="$3"
     local pattern_key="${tool}_${OS}_${ARCH}_pattern"
     local pattern="${TOOL_CONFIG[$pattern_key]}"
-    
+
     # Check if platform-specific pattern exists
     if [[ -z "$pattern" ]]; then
         error "No installation pattern found for $tool on $OS-$ARCH"
     fi
-    
+
     # Replace version placeholder (if it exists)
     local filename="$pattern"
     if [[ "$pattern" == *"{version}"* ]]; then
         filename="${pattern/\{version\}/${version#v}}"
     fi
     local url="https://github.com/$repo/releases/download/$version/$filename"
-    
+
     # Validate filename before download
     if [[ -z "$filename" ]]; then
         error "Empty filename for $tool on $OS-$ARCH (pattern: $pattern)"
     fi
-    
+
     log "INFO" "Downloading $tool for $OS-$ARCH: $filename"
     log "INFO" "URL: $url"
-    
+
     if curl -L -o "$filename" "$url"; then
         # Try different extraction methods based on the file type
         if [[ "$filename" == *.tar.gz ]]; then
@@ -279,7 +279,7 @@ install_from_script() {
     local tool="$1"
     local script_key="${tool}_script"
     local script_url="${TOOL_CONFIG[$script_key]}"
-    
+
     case "$tool" in
         "atuin")
             if curl --proto '=https' --tlsv1.2 -LsSf "$script_url" | sh; then
@@ -330,17 +330,17 @@ setup_directories() {
 
 copy_configurations() {
     log "INFO" "Copying configurations from $DOTFILES_DIR to $CONFIG_DIR"
-    
+
     # Use rsync for efficient copying
     if command -v rsync &>/dev/null; then
         # Exclude the script itself and git files
         local rsync_cmd="rsync -av --exclude=*.sh --exclude=.git* --exclude=CLAUDE.md"
-        
+
         # On macOS, handle extended attributes properly
         if [[ "$OS" == "darwin" ]]; then
             rsync_cmd="$rsync_cmd -E"
         fi
-        
+
         $rsync_cmd "$DOTFILES_DIR/" "$CONFIG_DIR/"
     else
         # Fallback to manual copying
@@ -350,7 +350,7 @@ copy_configurations() {
             [[ "$basename_item" == *.sh ]] && continue
             [[ "$basename_item" == .git* ]] && continue
             [[ "$basename_item" == "CLAUDE.md" ]] && continue
-            
+
             local dest="$CONFIG_DIR/$basename_item"
             if [[ -d "$item" ]]; then
                 mkdir -p "$dest"
@@ -368,11 +368,11 @@ copy_configurations() {
 
 setup_scripts() {
     log "INFO" "Setting up executable scripts..."
-    
+
     if [[ -d "$SCRIPTS_DIR" ]]; then
         # Make all scripts executable
         chmod +x "$SCRIPTS_DIR"/* 2>/dev/null || true
-        
+
         # Copy scripts to bin directory without .sh extension
         for script in "$SCRIPTS_DIR"/*; do
             if [[ -f "$script" ]]; then
@@ -387,7 +387,7 @@ setup_scripts() {
 configure_atuin() {
     log "INFO" "Configuring atuin for local use..."
     local atuin_config="$CONFIG_DIR/atuin/config.toml"
-    
+
     if [[ -f "$atuin_config" ]]; then
         chmod +rw "$atuin_config"
         # Remove sync-related configurations for local setup
@@ -403,22 +403,24 @@ setup_npm_and_claude() {
         log "INFO" "To install npm, install Node.js from https://nodejs.org/"
         return
     fi
-    
+
     log "INFO" "Setting up npm global directory and installing Claude Code..."
-    
+
     # Create npm global directory if it doesn't exist
     local npm_global_dir="$HOME/.npm-global"
     if [[ ! -d "$npm_global_dir" ]]; then
         mkdir -p "$npm_global_dir"
         log "INFO" "Created npm global directory: $npm_global_dir"
     fi
-    
+
     # Configure npm to use the new prefix
     npm config set prefix "$npm_global_dir"
-    
+
     # Install Claude Code
     if npm install -g @anthropic-ai/claude-code; then
         log "INFO" "Claude Code installed successfully"
+        # Claude MCP additions
+        claude mcp add playwright npx @playwright/mcp@latest
     else
         log "WARN" "Failed to install Claude Code"
     fi
@@ -427,25 +429,25 @@ setup_npm_and_claude() {
 configure_shell() {
     local shell=$(basename "$SHELL")
     local shell_rc=""
-    
+
     case "$shell" in
         bash) shell_rc="$HOME/.bashrc" ;;
         zsh) shell_rc="$HOME/.zshrc" ;;
-        *) 
+        *)
             log "WARN" "Unsupported shell: $shell. Skipping shell configuration."
             return
             ;;
     esac
-    
+
     log "INFO" "Configuring $shell shell..."
-    
+
     # Clear any conflicting starship environment variables
     unset STARSHIP_SHELL STARSHIP_SESSION_KEY
-    
+
     # Determine editor
     local editor="nano"
     command -v code &>/dev/null && editor="code"
-    
+
     # Function to safely append to shell config
     safe_append() {
         local text="$1"
@@ -462,12 +464,12 @@ configure_shell() {
             echo "$text" >> "$shell_rc"
         fi
     }
-    
+
     # Add essential configurations
     safe_append 'export PATH="$HOME/.local/bin:$PATH"'
     safe_append 'export PATH="$HOME/.npm-global/bin:$PATH"'
     safe_append "export VISUAL=$editor"
-    
+
     # Add tool initializations based on shell
     case "$shell" in
         bash)
@@ -486,7 +488,7 @@ configure_shell() {
             safe_append 'eval "$(zoxide init zsh --cmd cd --hook pwd)" 2>/dev/null || true'
             ;;
     esac
-    
+
     # Initialize starship for current session
     if command -v starship &>/dev/null; then
         eval "$(starship init "$shell")" 2>/dev/null || log "WARN" "Starship will be available in new shell sessions"
@@ -496,7 +498,7 @@ configure_shell() {
 main() {
     log "INFO" "Starting dotfiles setup..."
     log "INFO" "Detected platform: $PLATFORM (OS: $OS, Architecture: $ARCH)"
-    
+
     check_dependencies
     setup_directories
     check_and_install_tools
@@ -505,16 +507,16 @@ main() {
     configure_atuin
     setup_npm_and_claude
     configure_shell
-    
+
     log "INFO" "Dotfiles and CLI tools setup complete!"
-    
+
     # Source the shell configuration to activate changes
     local shell_rc=""
     case "$(basename "$SHELL")" in
         bash) shell_rc="$HOME/.bashrc" ;;
         zsh) shell_rc="$HOME/.zshrc" ;;
     esac
-    
+
     if [[ -f "$shell_rc" ]]; then
         log "INFO" "Activating shell configuration changes..."
         source "$shell_rc" 2>/dev/null || log "WARN" "Could not source $shell_rc automatically"
