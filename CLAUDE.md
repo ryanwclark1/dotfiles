@@ -43,6 +43,9 @@ This is a personal dotfiles repository that manages configuration files and util
 # Initial setup (installs tools and applies configs)
 ./bootstrap.sh
 
+# Install Claude Code and MCP servers (requires npm)
+./install-claude-mcp.sh
+
 # Update dotfiles repository from current system configs
 ./update_dots.sh
 
@@ -100,13 +103,25 @@ The bootstrap script automatically handles starship initialization issues, but i
 - This typically happens when starship was previously initialized for zsh but current session is bash
 - The bootstrap script uses the official starship installer and handles environment variable conflicts automatically
 
-#### NPM and Claude Code Setup
-The bootstrap script automatically sets up a safe npm global directory:
+#### Claude Code and MCP Servers Setup
+A separate installation script handles Claude Code and MCP servers:
+- Run `./install-claude-mcp.sh` to install Claude Code and MCP servers
 - Creates `~/.npm-global/` directory for user-writable npm packages
 - Configures npm to use this directory as the global prefix
 - Adds `~/.npm-global/bin` to PATH for globally installed packages
-- Installs Claude Code (`@anthropic-ai/claude-code`) if npm is available
+- Installs Claude Code (`@anthropic-ai/claude-code`)
+- Installs configured MCP servers (currently includes playwright)
+- Provides examples of additional MCP servers you can add
 - If npm is not installed, provides guidance on installing Node.js
+
+To add more MCP servers, edit the `MCP_SERVERS` array in `install-claude-mcp.sh`:
+```bash
+declare -a MCP_SERVERS=(
+    "playwright:npx @playwright/mcp@latest"
+    "github:npx @modelcontextprotocol/github-server@latest"
+    "filesystem:npx @modelcontextprotocol/filesystem-server@latest /path/to/allow"
+)
+```
 
 ### Development Tools Available
 - **fzf**: Fuzzy finder with custom git integration (`fzf-git` script)
@@ -120,7 +135,7 @@ The bootstrap script automatically sets up a safe npm global directory:
 - **yazi**: Terminal file manager
 - **tmux**: Terminal multiplexer with custom configuration
 - **k9s**: Kubernetes cluster management
-- **Claude Code**: AI-powered coding assistant (installed via npm if available)
+- **Claude Code**: AI-powered coding assistant (install via `./install-claude-mcp.sh`)
 
 ### Utility Scripts
 All scripts in `scripts/` are available as commands after running `bootstrap.sh`:
@@ -142,12 +157,16 @@ All scripts in `scripts/` are available as commands after running `bootstrap.sh`
 When `bootstrap.sh` runs:
 - Configs are copied to `~/.config/`
 - Scripts are made executable and copied to `~/.local/bin/`
-- NPM global directory is set up at `~/.npm-global/` (if npm is available)
-- Claude Code is installed globally via npm (if npm is available)
 - Shell configurations are updated (`.bashrc` or `.zshrc`)
 - PATH is updated to include `~/.local/bin` and `~/.npm-global/bin`
 - Tools are installed if not present
 - Shell configuration is automatically sourced to activate changes
+
+When `install-claude-mcp.sh` runs:
+- NPM global directory is set up at `~/.npm-global/`
+- Claude Code is installed globally via npm
+- Configured MCP servers are installed
+- PATH is updated to include `~/.npm-global/bin`
 
 When `update_dots.sh` runs:
 - Current configs are copied back from `~/.config/` to this repository

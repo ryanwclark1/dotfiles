@@ -333,8 +333,8 @@ copy_configurations() {
 
     # Use rsync for efficient copying
     if command -v rsync &>/dev/null; then
-        # Exclude the script itself and git files
-        local rsync_cmd="rsync -av --exclude=*.sh --exclude=.git* --exclude=CLAUDE.md"
+        # Exclude the script itself, git files, shell directory, and documentation
+        local rsync_cmd="rsync -av --exclude=*.sh --exclude=.git* --exclude=CLAUDE.md --exclude=shell/"
 
         # On macOS, handle extended attributes properly
         if [[ "$OS" == "darwin" ]]; then
@@ -346,10 +346,11 @@ copy_configurations() {
         # Fallback to manual copying
         for item in "$DOTFILES_DIR"/*; do
             local basename_item=$(basename "$item")
-            # Skip script files and git files
+            # Skip script files, git files, shell directory, and documentation
             [[ "$basename_item" == *.sh ]] && continue
             [[ "$basename_item" == .git* ]] && continue
             [[ "$basename_item" == "CLAUDE.md" ]] && continue
+            [[ "$basename_item" == "shell" ]] && continue
 
             local dest="$CONFIG_DIR/$basename_item"
             if [[ -d "$item" ]]; then
@@ -369,7 +370,23 @@ copy_configurations() {
 setup_scripts() {
     log "INFO" "Setting up executable scripts..."
 
+    # Scripts to remove on certain platforms (add as needed)
+    local SCRIPTS_TO_REMOVE=()
+    
+    # Example: Remove macOS-specific scripts on Linux
+    # if [[ "$OS" == "linux" ]]; then
+    #     SCRIPTS_TO_REMOVE+=(mac-only-script)
+    # fi
+
     if [[ -d "$SCRIPTS_DIR" ]]; then
+        # Remove platform-specific scripts if defined
+        for script in "${SCRIPTS_TO_REMOVE[@]}"; do
+            if [[ -f "$SCRIPTS_DIR/$script" ]]; then
+                rm -f "$SCRIPTS_DIR/$script"
+                log "INFO" "Removed platform-specific script: $script"
+            fi
+        done
+
         # Make all scripts executable
         chmod +x "$SCRIPTS_DIR"/* 2>/dev/null || true
 
@@ -397,99 +414,64 @@ configure_atuin() {
     fi
 }
 
-# setup_npm_and_claude() {
-#     if ! command -v npm &>/dev/null; then
-#         log "WARN" "npm is not installed. Skipping Claude Code installation."
-#         log "INFO" "To install npm, install Node.js from https://nodejs.org/"
-#         return
-#     fi
-
-#     log "INFO" "Setting up npm global directory and installing Claude Code..."
-
-#     # Create npm global directory if it doesn't exist
-#     local npm_global_dir="$HOME/.npm-global"
-#     if [[ ! -d "$npm_global_dir" ]]; then
-#         mkdir -p "$npm_global_dir"
-#         log "INFO" "Created npm global directory: $npm_global_dir"
-#     fi
-
-#     # Configure npm to use the new prefix
-#     npm config set prefix "$npm_global_dir"
-
-#     # Install Claude Code
-#     if npm install -g @anthropic-ai/claude-code; then
-#         log "INFO" "Claude Code installed successfully"
-#         # Claude MCP additions
-#         claude mcp add playwright npx @playwright/mcp@latest
-#     else
-#         log "WARN" "Failed to install Claude Code"
-#     fi
-# }
 
 configure_shell() {
-    local shell=$(basename "$SHELL")
-    local shell_rc=""
-
-    case "$shell" in
-        bash) shell_rc="$HOME/.bashrc" ;;
-        zsh) shell_rc="$HOME/.zshrc" ;;
-        *)
-            log "WARN" "Unsupported shell: $shell. Skipping shell configuration."
-            return
-            ;;
-    esac
-
-    log "INFO" "Configuring $shell shell..."
+    log "INFO" "Configuring shell..."
 
     # Clear any conflicting starship environment variables
     unset STARSHIP_SHELL STARSHIP_SESSION_KEY
 
-    # Determine editor
-    local editor="nano"
-    command -v code &>/dev/null && editor="code"
+    # Markers for managed sections
+    local start_marker="# BEGIN DOTFILES MANAGED BLOCK"
+    local end_marker="# END DOTFILES MANAGED BLOCK"
 
-    # Function to safely append to shell config
-    safe_append() {
-        local text="$1"
-        # Ensure the shell config file exists and is writable
-        touch "$shell_rc" 2>/dev/null || {
-            log "WARN" "Cannot create $shell_rc, skipping shell configuration"
-            return 1
-        }
-        chmod +w "$shell_rc" 2>/dev/null || {
-            log "WARN" "Cannot make $shell_rc writable, skipping shell configuration"
-            return 1
-        }
-        if ! grep -qF "$text" "$shell_rc" 2>/dev/null; then
-            echo "$text" >> "$shell_rc"
+    # Function to append dotfiles configuration to shell rc file
+    append_dotfiles_config() {
+        local shell_rc="$1"
+        local config_file="$2"
+        
+        # Create shell rc file if it doesn't exist
+        [[ ! -f "$shell_rc" ]] && touch "$shell_rc"
+        
+        # Check if our managed block already exists
+        if grep -q "$start_marker" "$shell_rc" 2>/dev/null; then
+            log "INFO" "Updating existing dotfiles configuration in $shell_rc..."
+            # Remove old managed block
+            local temp_file=$(mktemp)
+            awk "!/$start_marker/,!/$end_marker/" "$shell_rc" > "$temp_file"
+            mv "$temp_file" "$shell_rc"
+        else
+            log "INFO" "Adding dotfiles configuration to $shell_rc..."
         fi
+        
+        # Append new managed block
+        {
+            echo ""
+            echo "$start_marker"
+            echo "# Added by dotfiles bootstrap.sh on $(date)"
+            echo "# To update, run bootstrap.sh again"
+            cat "$config_file"
+            echo "$end_marker"
+            echo ""
+        } >> "$shell_rc"
     }
 
-    # Add essential configurations
-    safe_append 'export PATH="$HOME/.local/bin:$PATH"'
-    safe_append 'export PATH="$HOME/.npm-global/bin:$PATH"'
-    safe_append "export VISUAL=$editor"
+    # Configure bash if bashrc exists or if current shell is bash
+    if [[ -f "$HOME/.bashrc" ]] || [[ "$(basename "$SHELL")" == "bash" ]]; then
+        if [[ -f "$DOTFILES_DIR/shell/dotfiles.bash" ]]; then
+            append_dotfiles_config "$HOME/.bashrc" "$DOTFILES_DIR/shell/dotfiles.bash"
+        fi
+    fi
 
-    # Add tool initializations based on shell
-    case "$shell" in
-        bash)
-            safe_append '[ -f ~/.fzf.bash ] && source ~/.fzf.bash'
-            safe_append '. "$HOME/.atuin/bin/env" 2>/dev/null || true'
-            safe_append '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh'
-            safe_append 'eval "$(atuin init bash)" 2>/dev/null || true'
-            safe_append 'eval "$(starship init bash --print-full-init)" 2>/dev/null || true'
-            safe_append 'eval "$(zoxide init bash --cmd cd --hook pwd)" 2>/dev/null || true'
-            ;;
-        zsh)
-            safe_append '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
-            safe_append '. "$HOME/.atuin/bin/env" 2>/dev/null || true'
-            safe_append 'eval "$(atuin init zsh)" 2>/dev/null || true'
-            safe_append 'eval "$(starship init zsh --print-full-init)" 2>/dev/null || true'
-            safe_append 'eval "$(zoxide init zsh --cmd cd --hook pwd)" 2>/dev/null || true'
-            ;;
-    esac
+    # Configure zsh if zshrc exists or if current shell is zsh
+    if [[ -f "$HOME/.zshrc" ]] || [[ "$(basename "$SHELL")" == "zsh" ]]; then
+        if [[ -f "$DOTFILES_DIR/shell/dotfiles.zsh" ]]; then
+            append_dotfiles_config "$HOME/.zshrc" "$DOTFILES_DIR/shell/dotfiles.zsh"
+        fi
+    fi
 
     # Initialize starship for current session
+    local shell=$(basename "$SHELL")
     if command -v starship &>/dev/null; then
         eval "$(starship init "$shell")" 2>/dev/null || log "WARN" "Starship will be available in new shell sessions"
     fi
@@ -505,7 +487,6 @@ main() {
     copy_configurations
     setup_scripts
     configure_atuin
-    setup_npm_and_claude
     configure_shell
 
     log "INFO" "Dotfiles and CLI tools setup complete!"

@@ -11,13 +11,42 @@ DESTINATION_DIR="$SCRIPT_DIR"
 DEFAULT_FILE_LIST=("starship.toml")
 DEFAULT_DIR_LIST=("atuin" "bat" "eza" "fd" "k9s" "navi" "ripgrep" "ripgrep-all" "scripts" "tealdeer")
 
-# Function to remove existing files
+# Backup file patterns to exclude
+BACKUP_PATTERNS=(
+    "*.bak"
+    "*.backup"
+    "*.back"
+    "*.old"
+    "*.orig"
+    "*.save"
+    "*.swp"
+    "*.swo"
+    "*.tmp"
+    "*.temp"
+    "*~"
+    "*.backup.*"
+    "*.*.backup"
+    ".#*"
+    "#*#"
+)
 
+# Function to check if file matches backup patterns
+is_backup_file() {
+    local filename="$1"
+    for pattern in "${BACKUP_PATTERNS[@]}"; do
+        if [[ "$filename" == $pattern ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Function to remove existing files
 remove_files() {
     local dest_file="$DESTINATION_DIR/$1"
 
-    # Skip .bak files
-    if [[ "$dest_file" == *.bak ]]; then
+    # Skip backup files
+    if is_backup_file "$(basename "$dest_file")"; then
         echo "Skipping backup file: $dest_file"
         return
     fi
@@ -43,6 +72,12 @@ copy_files() {
     local src_file="$SOURCE_DIR/$1"
     local dest_file="$DESTINATION_DIR/$1"
 
+    # Skip backup files
+    if is_backup_file "$(basename "$src_file")"; then
+        echo "Skipping backup file: $src_file"
+        return
+    fi
+
     if [[ -f "$src_file" ]]; then
         cp -L "$src_file" "$dest_file"  # Use -L to dereference symbolic links
         chown "$USER" "$dest_file"
@@ -61,11 +96,18 @@ copy_directories() {
     if [[ -d "$src_dir" ]]; then
         echo "Copying directory: $src_dir -> $dest_dir"
         if command -v rsync >/dev/null 2>&1; then
-            rsync -aL --exclude='*.bak' --exclude='*.backup' "$src_dir/" "$dest_dir/"
+            # Build rsync exclude arguments from backup patterns
+            local rsync_args=("-aL")
+            for pattern in "${BACKUP_PATTERNS[@]}"; do
+                rsync_args+=("--exclude=$pattern")
+            done
+            rsync "${rsync_args[@]}" "$src_dir/" "$dest_dir/"
         else
             cp -rfL "$src_dir" "$dest_dir"
-            # Remove any .bak files that were copied
-            find "$dest_dir" -type f \( -name '*.bak' -o -name '*.backup' \) -delete
+            # Remove any backup files that were copied
+            for pattern in "${BACKUP_PATTERNS[@]}"; do
+                find "$dest_dir" -type f -name "$pattern" -delete 2>/dev/null || true
+            done
         fi
         chown -R "$USER" "$dest_dir"
         find "$dest_dir" -type f -exec chmod u+w {} \;

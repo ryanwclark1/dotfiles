@@ -1,4 +1,5 @@
 *.bak
+*.backup
 
 # Default meson build dir
 /build
@@ -27,4 +28,6 @@ flake-regressions
 
 # direnv
 .direnv/
+CLAUDE.md
+.claude/settings.local.json
 CLAUDE.md
