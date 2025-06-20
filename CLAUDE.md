@@ -126,8 +126,8 @@ declare -a MCP_SERVERS=(
 ### Development Tools Available
 - **fzf**: Fuzzy finder with custom git integration (`fzf-git` script)
 - **ripgrep**: Fast text search (with custom `rgf` script for file search)
-- **bat**: Syntax-highlighted file viewer (aliased to `cat`)
-- **eza**: Modern `ls` replacement with git integration
+- **bat**: Syntax-highlighted file viewer
+- **eza**: Modern `ls` replacement with git integration (now installed by bootstrap)
 - **fd**: Fast file finder
 - **atuin**: Shell history with sync capabilities
 - **starship**: Cross-shell prompt (installed via official script)
@@ -183,8 +183,8 @@ The repository uses Catppuccin theme variants consistently across:
 
 ## Tool Integration
 
-- **Shell aliases** enhance default tools (e.g., `ls` → `eza`, `cat` → `bat`)
+- **Shell aliases** for enhanced tools (check `alias` file for current mappings)
 - **fzf integration** throughout scripts for interactive selection
 - **Git integration** in prompt, file listings, and utility scripts
 - **Tmux integration** with custom modules for system monitoring
-- 
+- **Eza configuration** with custom theme in `eza/theme.yml`

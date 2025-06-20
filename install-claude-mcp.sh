@@ -1,7 +1,40 @@
 #!/usr/bin/env bash
 set -e
 
+# Parse command line arguments
+FORCE_NON_INTERACTIVE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --non-interactive|-n)
+            FORCE_NON_INTERACTIVE=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [OPTIONS]"
+            echo "Options:"
+            echo "  --non-interactive, -n  Run in non-interactive mode (no prompts)"
+            echo "  --help, -h            Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if running in non-interactive mode
+if [[ "$FORCE_NON_INTERACTIVE" == "true" ]] || [ ! -t 0 ]; then
+    INTERACTIVE=false
+else
+    INTERACTIVE=true
+fi
+
 echo "Setting up Claude Code and MCP servers..."
+if [[ "$INTERACTIVE" == "false" ]]; then
+    echo "Running in non-interactive mode"
+fi
 
 # Dynamic path detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -288,10 +321,15 @@ install_playwright_browsers() {
             log "INFO" "Installing Playwright system dependencies..."
             if command -v apt-get &>/dev/null; then
                 # Debian/Ubuntu
-                if sudo npx playwright install-deps; then
-                    log "INFO" "Playwright dependencies installed successfully"
+                if [[ "$INTERACTIVE" == "true" ]]; then
+                    if sudo npx playwright install-deps; then
+                        log "INFO" "Playwright dependencies installed successfully"
+                    else
+                        log "WARN" "Failed to install Playwright dependencies. You may need to install them manually."
+                    fi
                 else
-                    log "WARN" "Failed to install Playwright dependencies. You may need to install them manually."
+                    log "INFO" "Non-interactive mode: skipping system dependency installation"
+                    log "INFO" "Run 'sudo npx playwright install-deps' manually if needed"
                 fi
             else
                 log "WARN" "Non-Debian system detected. Please install Playwright dependencies manually."
@@ -310,7 +348,7 @@ install_claude() {
     # Check if Claude Code is already installed
     if command -v claude &>/dev/null; then
         log "INFO" "Claude Code is already installed"
-        log "INFO" "Current version: $(claude --version 2>/dev/null || echo 'unknown')"
+        # Don't try to get version if it might hang
         log "INFO" "Location: $(which claude)"
         
         # Skip npm installation if Claude is installed via system package manager
@@ -319,9 +357,14 @@ install_claude() {
             return
         fi
         
-        read -p "Do you want to reinstall/update via npm? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            read -p "Do you want to reinstall/update via npm? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                return
+            fi
+        else
+            log "INFO" "Non-interactive mode, skipping npm reinstall"
             return
         fi
     fi
@@ -349,36 +392,42 @@ check_github_token() {
         log "INFO" "  3. Select scopes: repo, read:org, read:user"
         log "INFO" "  4. Generate and copy the token"
         log "INFO" "  5. Add to your shell config: export GITHUB_TOKEN='your_token_here'"
-        echo
-        read -p "Do you have a GitHub token to set now? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            read -sp "Enter your GitHub token: " github_token
+        
+        if [[ "$INTERACTIVE" == "true" ]]; then
             echo
-            if [[ -n "$github_token" ]]; then
-                export GITHUB_TOKEN="$github_token"
-                
-                # Add to shell config
-                local shell=$(basename "$SHELL")
-                local shell_rc=""
-                case "$shell" in
-                    bash) shell_rc="$HOME/.bashrc" ;;
-                    zsh) shell_rc="$HOME/.zshrc" ;;
-                esac
-                
-                if [[ -n "$shell_rc" ]]; then
-                    # Check if shell rc is writable
-                    if [[ -L "$shell_rc" ]] || [[ ! -w "$shell_rc" ]]; then
-                        log "WARN" "Cannot save GITHUB_TOKEN to $shell_rc (managed by system)"
-                        log "INFO" "Please manually add to your shell configuration:"
-                        log "INFO" "  export GITHUB_TOKEN='$github_token'"
-                    else
-                        echo "export GITHUB_TOKEN='$github_token'" >> "$shell_rc"
-                        log "INFO" "Added GITHUB_TOKEN to $shell_rc"
+            read -p "Do you have a GitHub token to set now? (y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                read -sp "Enter your GitHub token: " github_token
+                echo
+                if [[ -n "$github_token" ]]; then
+                    export GITHUB_TOKEN="$github_token"
+                    
+                    # Add to shell config
+                    local shell=$(basename "$SHELL")
+                    local shell_rc=""
+                    case "$shell" in
+                        bash) shell_rc="$HOME/.bashrc" ;;
+                        zsh) shell_rc="$HOME/.zshrc" ;;
+                    esac
+                    
+                    if [[ -n "$shell_rc" ]]; then
+                        # Check if shell rc is writable
+                        if [[ -L "$shell_rc" ]] || [[ ! -w "$shell_rc" ]]; then
+                            log "WARN" "Cannot save GITHUB_TOKEN to $shell_rc (managed by system)"
+                            log "INFO" "Please manually add to your shell configuration:"
+                            log "INFO" "  export GITHUB_TOKEN='$github_token'"
+                        else
+                            echo "export GITHUB_TOKEN='$github_token'" >> "$shell_rc"
+                            log "INFO" "Added GITHUB_TOKEN to $shell_rc"
+                        fi
                     fi
                 fi
+            else
+                log "WARN" "GitHub MCP server will be installed but won't work without a token"
             fi
         else
+            log "INFO" "Non-interactive mode: skipping token setup"
             log "WARN" "GitHub MCP server will be installed but won't work without a token"
         fi
     else
@@ -453,19 +502,23 @@ EOF
         log "INFO" "Created default Context7 config at: $context7_config"
         
         # Ask if user wants to configure workspaces
-        echo
-        read -p "Would you like to add a custom workspace path? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            read -p "Enter workspace path (e.g., ~/Code): " workspace_path
-            if [[ -n "$workspace_path" ]]; then
-                # Expand tilde to home directory
-                workspace_path="${workspace_path/#\~/$HOME}"
-                
-                # Update config with custom path
-                jq --arg path "$workspace_path" '.workspaces[0].path = $path' "$context7_config" > "$context7_config.tmp" && mv "$context7_config.tmp" "$context7_config"
-                log "INFO" "Updated workspace path to: $workspace_path"
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            echo
+            read -p "Would you like to add a custom workspace path? (y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                read -p "Enter workspace path (e.g., ~/Code): " workspace_path
+                if [[ -n "$workspace_path" ]]; then
+                    # Expand tilde to home directory
+                    workspace_path="${workspace_path/#\~/$HOME}"
+                    
+                    # Update config with custom path
+                    jq --arg path "$workspace_path" '.workspaces[0].path = $path' "$context7_config" > "$context7_config.tmp" && mv "$context7_config.tmp" "$context7_config"
+                    log "INFO" "Updated workspace path to: $workspace_path"
+                fi
             fi
+        else
+            log "INFO" "Non-interactive mode: using default workspace path ~/projects"
         fi
     else
         log "INFO" "Context7 config already exists at: $context7_config"
@@ -650,10 +703,15 @@ setup_serena() {
     local default_project_dir="$HOME/projects"
     local project_dir=""
     
-    echo
-    log "INFO" "Serena requires a project directory to work with"
-    read -p "Enter your default project directory (default: $default_project_dir): " project_dir
-    project_dir="${project_dir:-$default_project_dir}"
+    if [[ "$INTERACTIVE" == "true" ]]; then
+        echo
+        log "INFO" "Serena requires a project directory to work with"
+        read -p "Enter your default project directory (default: $default_project_dir): " project_dir
+        project_dir="${project_dir:-$default_project_dir}"
+    else
+        log "INFO" "Non-interactive mode: using default project directory $default_project_dir"
+        project_dir="$default_project_dir"
+    fi
     
     # Expand tilde to home directory
     project_dir="${project_dir/#\~/$HOME}"
@@ -699,25 +757,29 @@ setup_git_mcp() {
     local repos_config="$git_mcp_dir/repositories.json"
     local repos=()
     
-    echo
-    log "INFO" "Git MCP needs to know which repositories to work with"
-    log "INFO" "Enter repository paths (press Enter without input to finish):"
-    
-    while true; do
-        read -p "Repository path (or Enter to finish): " repo_path
-        [[ -z "$repo_path" ]] && break
+    if [[ "$INTERACTIVE" == "true" ]]; then
+        echo
+        log "INFO" "Git MCP needs to know which repositories to work with"
+        log "INFO" "Enter repository paths (press Enter without input to finish):"
         
-        # Expand tilde to home directory
-        repo_path="${repo_path/#\~/$HOME}"
-        
-        # Validate it's a git repository
-        if [[ -d "$repo_path/.git" ]]; then
-            repos+=("$repo_path")
-            log "INFO" "Added repository: $repo_path"
-        else
-            log "WARN" "$repo_path is not a git repository"
-        fi
-    done
+        while true; do
+            read -p "Repository path (or Enter to finish): " repo_path
+            [[ -z "$repo_path" ]] && break
+            
+            # Expand tilde to home directory
+            repo_path="${repo_path/#\~/$HOME}"
+            
+            # Validate it's a git repository
+            if [[ -d "$repo_path/.git" ]]; then
+                repos+=("$repo_path")
+                log "INFO" "Added repository: $repo_path"
+            else
+                log "WARN" "$repo_path is not a git repository"
+            fi
+        done
+    else
+        log "INFO" "Non-interactive mode: auto-detecting repositories"
+    fi
     
     # Add default repositories if none specified
     if [[ ${#repos[@]} -eq 0 ]]; then
@@ -766,7 +828,8 @@ install_mcp_servers() {
         error "Claude Code must be installed before adding MCP servers"
     fi
     
-    log "DEBUG" "Claude found, checking server-specific configurations..."
+    log "DEBUG" "Claude found at: $(which claude)"
+    log "DEBUG" "Checking server-specific configurations..."
     
     # Check for server-specific configurations
     for server_config in "${MCP_SERVERS[@]}"; do
@@ -966,6 +1029,7 @@ print_next_steps() {
 
 main() {
     log "INFO" "Starting Claude Code and MCP servers setup..."
+    log "INFO" "Interactive mode: $INTERACTIVE"
     
     log "DEBUG" "Step 1: Checking npm..."
     check_npm
@@ -978,9 +1042,11 @@ main() {
     
     log "DEBUG" "Step 4: Installing Claude..."
     install_claude
+    log "DEBUG" "Step 4 complete"
     
     log "DEBUG" "Step 5: Installing MCP servers..."
     install_mcp_servers
+    log "DEBUG" "Step 5 complete"
     
     log "DEBUG" "Step 6: Setting up devcontainer..."
     

@@ -1,13 +1,4 @@
-alias cat='bat --plain --color=always'
-alias eza='eza --icons auto --git --group-directories-first --header --octal-permissions --hyperlink'
 alias fd='fd --hidden '\''--color auto'\'' --follow --no-require-git'
 alias jqless='jq -C | bat --pager '\''less RF'\'' --style=numbers --color=always'
-alias l='eza -lhg'
-alias la='eza -a'
-alias less='bat --pager --style=numbers --color=always'
+
 alias lg=lazygit
-alias ll='eza -alhg'
-alias lla='eza -la'
-alias ls='eza -a --icons'
-alias lt='eza --tree'
-alias tree='eza -la --git-ignore --icons --tree --hyperlink --level 4'

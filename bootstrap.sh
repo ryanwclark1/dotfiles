@@ -46,6 +46,7 @@ declare -A TOOLS=(
     ["fzf"]="install_from_git"
     ["fd"]="install_from_github"
     ["rg"]="install_from_github"
+    ["eza"]="install_from_github"
     ["atuin"]="install_from_script"
     ["starship"]="install_from_script"
     ["zoxide"]="install_from_script"
@@ -70,6 +71,12 @@ declare -A TOOL_CONFIG=(
     ["rg_linux_arm64_pattern"]="ripgrep-{version}-aarch64-unknown-linux-gnu.tar.gz"
     ["rg_darwin_amd64_pattern"]="ripgrep-{version}-x86_64-apple-darwin.tar.gz"
     ["rg_darwin_arm64_pattern"]="ripgrep-{version}-aarch64-apple-darwin.tar.gz"
+
+    ["eza_repo"]="eza-community/eza"
+    ["eza_linux_amd64_pattern"]="eza_x86_64-unknown-linux-gnu.tar.gz"
+    ["eza_linux_arm64_pattern"]="eza_aarch64-unknown-linux-gnu.tar.gz"
+    ["eza_darwin_amd64_pattern"]="eza_x86_64-apple-darwin.tar.gz"
+    ["eza_darwin_arm64_pattern"]="eza_aarch64-apple-darwin.tar.gz"
 
     ["starship_repo"]="starship/starship"
     ["starship_linux_amd64_pattern"]="starship-x86_64-unknown-linux-musl.tar.gz"
