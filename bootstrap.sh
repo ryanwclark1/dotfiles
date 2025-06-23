@@ -229,6 +229,8 @@ install_platform_tarball() {
     if [[ "$pattern" == *"{version}"* ]]; then
         filename="${pattern/\{version\}/${version#v}}"
     fi
+    
+    # For eza and other tools without version in filename, use pattern as-is
     local url="https://github.com/$repo/releases/download/$version/$filename"
 
     # Validate filename before download
