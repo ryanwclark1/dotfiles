@@ -177,7 +177,7 @@ install_playwright_browsers() {
     fi
 
     log "INFO" "Installing system dependencies for Playwright (may require sudo)..."
-    if sudo npx playwright install-deps; then
+    if npx playwright install-deps; then
         log "SUCCESS" "Playwright dependencies installed"
     else
         log "WARN" "Failed to install Playwright system dependencies. Skipping browser installation."
