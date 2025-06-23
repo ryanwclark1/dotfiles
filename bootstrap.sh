@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-set -e
-
-echo "Setting up dotfiles and installing CLI tools..."
+set -euo pipefail
 
 # Dynamic path detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,6 +10,8 @@ BIN_DIR="$HOME/.local/bin"
 
 # Required tools for validation
 REQUIRED_TOOLS=(git curl jq)
+
+echo "Setting up dotfiles and installing CLI tools..."
 
 # Architecture and platform detection
 detect_platform() {
@@ -73,10 +73,10 @@ declare -A TOOL_CONFIG=(
     ["rg_darwin_arm64_pattern"]="ripgrep-{version}-aarch64-apple-darwin.tar.gz"
 
     ["eza_repo"]="eza-community/eza"
-    ["eza_linux_amd64_pattern"]="eza_x86_64-unknown-linux-gnu.tar.gz"
-    ["eza_linux_arm64_pattern"]="eza_aarch64-unknown-linux-gnu.tar.gz"
-    ["eza_darwin_amd64_pattern"]="eza_x86_64-apple-darwin.tar.gz"
-    ["eza_darwin_arm64_pattern"]="eza_aarch64-apple-darwin.tar.gz"
+    ["eza_linux_amd64_pattern"]="eza-v{version}-x86_64-unknown-linux-gnu.tar.gz"
+    ["eza_linux_arm64_pattern"]="eza-v{version}-aarch64-unknown-linux-gnu.tar.gz"
+    ["eza_darwin_amd64_pattern"]="eza-v{version}-x86_64-apple-darwin.tar.gz"
+    ["eza_darwin_arm64_pattern"]="eza-v{version}-aarch64-apple-darwin.tar.gz"
 
     ["starship_repo"]="starship/starship"
     ["starship_linux_amd64_pattern"]="starship-x86_64-unknown-linux-musl.tar.gz"
@@ -229,7 +229,7 @@ install_platform_tarball() {
     if [[ "$pattern" == *"{version}"* ]]; then
         filename="${pattern/\{version\}/${version#v}}"
     fi
-    
+
     # For eza and other tools without version in filename, use pattern as-is
     local url="https://github.com/$repo/releases/download/$version/$filename"
 
@@ -381,7 +381,7 @@ setup_scripts() {
 
     # Scripts to remove on certain platforms (add as needed)
     local SCRIPTS_TO_REMOVE=()
-    
+
     # Example: Remove macOS-specific scripts on Linux
     # if [[ "$OS" == "linux" ]]; then
     #     SCRIPTS_TO_REMOVE+=(mac-only-script)
@@ -438,10 +438,10 @@ configure_shell() {
     append_dotfiles_config() {
         local shell_rc="$1"
         local config_file="$2"
-        
+
         # Create shell rc file if it doesn't exist
         [[ ! -f "$shell_rc" ]] && touch "$shell_rc"
-        
+
         # Check if our managed block already exists
         if grep -q "$start_marker" "$shell_rc" 2>/dev/null; then
             log "INFO" "Updating existing dotfiles configuration in $shell_rc..."
@@ -452,7 +452,7 @@ configure_shell() {
         else
             log "INFO" "Adding dotfiles configuration to $shell_rc..."
         fi
-        
+
         # Append new managed block
         {
             echo ""
