@@ -31,3 +31,4 @@ flake-regressions
 CLAUDE.md
 .claude/settings.local.json
 CLAUDE.md
+navi/navi.log
