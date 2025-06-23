@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# set -euo pipefail
+# set -x
+set -o pipefail
 
 # =========================
 # Claude MCP Installer 🚀
@@ -147,9 +149,14 @@ run_checks_only() {
 install_claude_if_missing() {
     if ! command -v claude &>/dev/null; then
         log "INFO" "Installing Claude via npm..."
-        npm install -g "@anthropic-ai/claude-code" && log "SUCCESS" "Claude installed!" || error "Failed to install Claude"
+        if npm install -g "@anthropic-ai/claude-code"; then
+            log "SUCCESS" "Claude installed!"
+        else
+            error "Failed to install Claude"
+        fi
     fi
 }
+
 
 install_uvx_if_missing() {
     if ! command -v uvx &>/dev/null; then
@@ -160,15 +167,28 @@ install_uvx_if_missing() {
 }
 
 install_playwright_browsers() {
-    log "INFO" "Installing Playwright + Browsers..."
-    npm install -g playwright
-    npx playwright install chromium firefox webkit
-    log "SUCCESS" "Playwright browsers installed"
+    log "INFO" "Installing Playwright..."
+    if npm install -g playwright; then
+        log "SUCCESS" "Playwright installed"
+    else
+        log "ERROR" "Failed to install Playwright"
+        FAILED_MCP_INSTALLS+=("playwright")
+        return
+    fi
+
+    log "INFO" "Installing Playwright browsers..."
+    if npx playwright install chromium firefox webkit; then
+        log "SUCCESS" "Playwright browsers installed"
+    else
+        log "WARN" "Playwright installed, but browser download failed"
+        FAILED_MCP_INSTALLS+=("playwright-browsers")
+    fi
 }
 
 setup_serena() {
     install_uvx_if_missing
-    local default_project="$HOME/projects"
+
+    local default_project="/workspace"
     local project_dir="$default_project"
 
     if [[ "$INTERACTIVE" == "true" ]]; then
@@ -178,11 +198,27 @@ setup_serena() {
 
     mkdir -p "$project_dir"
     mkdir -p "$HOME/.serena"
-    echo "{"defaultProject": "$project_dir", "context": "ide-assistant"}" > "$HOME/.serena/config.json"
-    export SERENA_PROJECT_DIR="$project_dir"
-    log "INFO" "Installing Serena MCP..."
-    claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project "$SERENA_PROJECT_DIR"         && log "SUCCESS" "Serena MCP installed"         || log "ERROR" "Serena MCP installation failed"
+
+    cat > "$HOME/.serena/config.json" <<EOF
+{
+  "defaultProject": "$project_dir",
+  "context": "ide-assistant"
 }
+EOF
+
+    export SERENA_PROJECT_DIR="$project_dir"
+
+    log "INFO" "Installing Serena MCP..."
+    if claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project "$SERENA_PROJECT_DIR"; then
+        log "SUCCESS" "Serena MCP installed"
+        return 0
+    else
+        log "ERROR" "Serena MCP installation failed"
+        return 1
+    fi
+}
+
+
 
 install_mcp_server() {
     local name="$1"
@@ -199,13 +235,14 @@ install_mcp_server() {
         return
     fi
 
-    if [[ "$name" == "serena" ]]; then
-        setup_serena
+    if [[ "$cmd" == "SPECIAL" && "$name" == "serena" ]]; then
+        setup_serena || FAILED_MCP_INSTALLS+=("$name")
     else
         if claude mcp add "$name" $cmd; then
             log "SUCCESS" "MCP $name installed"
         else
             log "ERROR" "Failed to install MCP $name"
+            FAILED_MCP_INSTALLS+=("$name")
         fi
     fi
 }
@@ -242,6 +279,16 @@ main() {
 
     log "SUCCESS" "All MCPs processed ✅"
     claude mcp list
+
+    if [[ "${#FAILED_MCP_INSTALLS[@]}" -gt 0 ]]; then
+        log "WARN" "Some MCPs failed to install:"
+        for failed in "${FAILED_MCP_INSTALLS[@]}"; do
+            log "ERROR" "❌ $failed"
+        done
+        exit 1
+    else
+        log "SUCCESS" "All MCPs installed successfully 🎉"
+    fi
 }
 
 main "$@"
