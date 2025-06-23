@@ -271,7 +271,7 @@ main() {
         "github:npx @modelcontextprotocol/server-github"
         "context7:npx @context7/mcp-server"
         "memorybank:npx memory-bank-mcp"
-        "memory:npx @modelcontextprotocol/server-memory"
+        "graphmemory:npx @modelcontextprotocol/server-memory"
         "serena:SPECIAL"
         "time:npx @modelcontextprotocol/server-time"
         "git:npx @modelcontextprotocol/server-git"
