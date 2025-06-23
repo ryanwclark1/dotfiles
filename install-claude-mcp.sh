@@ -176,6 +176,15 @@ install_playwright_browsers() {
         return
     fi
 
+    log "INFO" "Installing system dependencies for Playwright (may require sudo)..."
+    if sudo npx playwright install-deps; then
+        log "SUCCESS" "Playwright dependencies installed"
+    else
+        log "WARN" "Failed to install Playwright system dependencies. Skipping browser installation."
+        FAILED_MCP_INSTALLS+=("playwright-deps")
+        return
+    fi
+
     log "INFO" "Installing Playwright browsers..."
     if npx playwright install chromium firefox webkit; then
         log "SUCCESS" "Playwright browsers installed"
@@ -217,8 +226,6 @@ EOF
         return 1
     fi
 }
-
-
 
 install_mcp_server() {
     local name="$1"
