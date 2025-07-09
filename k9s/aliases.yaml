@@ -1,2 +1,3 @@
 aliases:
-  pp: v1/pods
+  aliases:
+    pp: v1/pods

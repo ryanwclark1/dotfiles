@@ -1,0 +1,3 @@
+# Python dependencies for dotfiles project
+# Install pydantic-ai/mcp-run-python from GitHub
+git+https://github.com/pydantic/pydantic-ai.git@main#egg=mcp-run-python

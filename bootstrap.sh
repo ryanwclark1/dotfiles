@@ -291,8 +291,25 @@ install_from_script() {
 
     case "$tool" in
         "atuin")
-            if curl --proto '=https' --tlsv1.2 -LsSf "$script_url" | sh; then
-                log "INFO" "$tool installed successfully"
+            # Install atuin to our bin directory
+            if curl --proto '=https' --tlsv1.2 -LsSf "$script_url" | sh -s -- --no-modify-path; then
+                # Move atuin binary to our bin directory
+                if [[ -f "$HOME/.atuin/bin/atuin" ]]; then
+                    cp "$HOME/.atuin/bin/atuin" "$BIN_DIR/atuin"
+                    chmod +x "$BIN_DIR/atuin"
+                    log "INFO" "$tool installed successfully to $BIN_DIR"
+                else
+                    log "WARN" "atuin binary not found at expected location, checking alternative paths..."
+                    # Check common installation paths
+                    for path in "$HOME/.local/bin/atuin" "$HOME/bin/atuin" "/usr/local/bin/atuin"; do
+                        if [[ -f "$path" ]]; then
+                            cp "$path" "$BIN_DIR/atuin"
+                            chmod +x "$BIN_DIR/atuin"
+                            log "INFO" "$tool installed successfully from $path"
+                            break
+                        fi
+                    done
+                fi
             else
                 error "Failed to install $tool"
             fi
@@ -447,7 +464,7 @@ configure_shell() {
             log "INFO" "Updating existing dotfiles configuration in $shell_rc..."
             # Remove old managed block
             local temp_file=$(mktemp)
-            awk "!/$start_marker/,!/$end_marker/" "$shell_rc" > "$temp_file"
+            sed "/$start_marker/,/$end_marker/d" "$shell_rc" > "$temp_file"
             mv "$temp_file" "$shell_rc"
         else
             log "INFO" "Adding dotfiles configuration to $shell_rc..."

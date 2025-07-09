@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Dotfiles configuration for bash
 # This file is managed by the dotfiles repository
 
@@ -15,8 +14,11 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 
 # Atuin
 if command -v atuin &>/dev/null; then
-    . "$HOME/.atuin/bin/env" 2>/dev/null || true
+    # Source atuin env if it exists
+    [[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env" 2>/dev/null || true
+    # Source bash-preexec if it exists
     [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+    # Initialize atuin
     eval "$(atuin init bash)" 2>/dev/null || true
 fi
 
