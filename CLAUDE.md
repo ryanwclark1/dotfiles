@@ -43,8 +43,8 @@ This is a personal dotfiles repository that manages configuration files and util
 # Initial setup (installs tools and applies configs)
 ./bootstrap.sh
 
-# Install Claude Code and MCP servers (requires npm)
-./install-claude-mcp.sh
+# Install AI CLIs (Claude, Gemini) and MCP servers (requires npm)
+./install-ai-tools.sh
 
 # Update dotfiles repository from current system configs
 ./update_dots.sh
@@ -103,18 +103,30 @@ The bootstrap script automatically handles starship initialization issues, but i
 - This typically happens when starship was previously initialized for zsh but current session is bash
 - The bootstrap script uses the official starship installer and handles environment variable conflicts automatically
 
-#### Claude Code and MCP Servers Setup
-A separate installation script handles Claude Code and MCP servers:
-- Run `./install-claude-mcp.sh` to install Claude Code and MCP servers
+#### AI CLIs and MCP Servers Setup
+A separate installation script handles AI CLIs (Claude and Gemini) and MCP servers:
+- Run `./install-ai-tools.sh` to install AI CLIs and MCP servers
 - Creates `~/.npm-global/` directory for user-writable npm packages
 - Configures npm to use this directory as the global prefix
 - Adds `~/.npm-global/bin` to PATH for globally installed packages
-- Installs Claude Code (`@anthropic-ai/claude-code`)
-- Installs configured MCP servers (currently includes playwright)
-- Provides examples of additional MCP servers you can add
+- Installs Claude CLI (`@anthropic-ai/claude-code`)
+- Attempts to install Gemini CLI (if available via npm)
+- Installs MCP servers to BOTH Claude and Gemini CLIs including:
+  - Core tools (filesystem, git, fetch, time, memory, sequential-thinking, everything)
+  - Language support (language-server, run-python)
+  - Code intelligence (serena)
+  - Browser automation (playwright, puppeteer)
+  - Search capabilities (brave-search)
+  - External integrations (github, context7)
+  - Gemini integration (Gemini MCP server)
+- Supports CLI-specific flags:
+  - `--claude-only`: Only install MCP servers to Claude
+  - `--gemini-only`: Only install MCP servers to Gemini
+  - `--exclude=name1,name2`: Skip specific MCP servers
+  - `--only=name1,name2`: Only install specific MCP servers
 - If npm is not installed, provides guidance on installing Node.js
 
-To add more MCP servers, edit the `MCP_SERVERS` array in `install-claude-mcp.sh`:
+To add more MCP servers, edit the `MCP_SERVERS` array in `install-ai-tools.sh`:
 ```bash
 declare -a MCP_SERVERS=(
     "playwright:npx @playwright/mcp@latest"
@@ -135,7 +147,8 @@ declare -a MCP_SERVERS=(
 - **yazi**: Terminal file manager
 - **tmux**: Terminal multiplexer with custom configuration
 - **k9s**: Kubernetes cluster management
-- **Claude Code**: AI-powered coding assistant (install via `./install-claude-mcp.sh`)
+- **Claude CLI**: AI-powered coding assistant (install via `./install-ai-tools.sh`)
+- **Gemini CLI**: Google's AI assistant (install via `./install-ai-tools.sh`)
 
 ### Utility Scripts
 All scripts in `scripts/` are available as commands after running `bootstrap.sh`:
@@ -162,11 +175,12 @@ When `bootstrap.sh` runs:
 - Tools are installed if not present
 - Shell configuration is automatically sourced to activate changes
 
-When `install-claude-mcp.sh` runs:
+When `install-ai-tools.sh` runs:
 - NPM global directory is set up at `~/.npm-global/`
-- Claude Code is installed globally via npm
-- Configured MCP servers are installed
+- Claude Code and Gemini CLI are installed globally via npm
+- Configured MCP servers are installed to both Claude and Gemini
 - PATH is updated to include `~/.npm-global/bin`
+- Each MCP server is registered with both AI CLIs for maximum compatibility
 
 When `update_dots.sh` runs:
 - Current configs are copied back from `~/.config/` to this repository

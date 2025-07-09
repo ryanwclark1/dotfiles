@@ -18,7 +18,7 @@ Context7 is an advanced code intelligence MCP server that provides deep code sea
 Context7 is automatically installed when you run:
 
 ```bash
-./install-claude-mcp.sh
+./install-claude-tools.sh
 ```
 
 ## Configuration

@@ -19,7 +19,7 @@ MemoryBank is a powerful MCP server that provides persistent memory capabilities
 MemoryBank is automatically installed when you run:
 
 ```bash
-./install-claude-mcp.sh
+./install-claude-tools.sh
 ```
 
 This creates:

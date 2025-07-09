@@ -15,7 +15,7 @@ The GitHub MCP (Model Context Protocol) server enables Claude to interact with G
 The GitHub MCP server is automatically installed when you run:
 
 ```bash
-./install-claude-mcp.sh
+./install-claude-tools.sh
 ```
 
 ## GitHub Token Setup
