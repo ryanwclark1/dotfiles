@@ -7,6 +7,8 @@ set -o pipefail
 # AI Tools Installer 🚀
 # =========================
 # Installs Claude CLI, Gemini CLI, and MCP servers
+# Note: MCP (Model Context Protocol) is Anthropic-specific and only works with Claude
+# Gemini uses different extension mechanisms
 
 # ---- Default Config ----
 FORCE_NON_INTERACTIVE=false
@@ -60,8 +62,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --debug                 Enable debug mode"
             echo "  --exclude=name1,name2   Skip certain MCPs"
             echo "  --only=name1,name2      Only install listed MCPs"
-            echo "  --claude-only           Only install MCPs for Claude"
-            echo "  --gemini-only           Only install MCPs for Gemini"
+            echo "  --claude-only           Only install Claude CLI (skip Gemini)"
+            echo "  --gemini-only           Only install Gemini CLI (skip Claude and MCPs)"
             exit 0 ;;
         *)
             echo -e "${RED}❌ Unknown option: $1${NC}" >&2
@@ -157,8 +159,9 @@ run_checks_only() {
     log "INFO" "Current Claude MCP servers:"
     claude mcp list 2>/dev/null || log "WARN" "No Claude MCP servers registered"
     
-    log "INFO" "Current Gemini MCP servers:"
-    gemini mcp list 2>/dev/null || log "WARN" "No Gemini MCP servers registered or Gemini CLI doesn't support MCP list"
+    if command -v gemini &>/dev/null; then
+        log "INFO" "Gemini CLI is installed (Note: MCP protocol is Claude-specific)"
+    fi
     
     log "SUCCESS" "Environment check complete ✅"
     exit 0
@@ -278,25 +281,6 @@ setup_brave_search() {
     return 0
 }
 
-setup_gemini_mcp() {
-    log "INFO" "Setting up Gemini MCP server..."
-    log "WARN" "Gemini MCP requires an API key from https://makersuite.google.com/app/apikey"
-
-    local api_key=""
-    if [[ "$INTERACTIVE" == "true" ]]; then
-        read -p "Enter Gemini API key (or press Enter to skip): " api_key
-    fi
-
-    if [[ -z "$api_key" ]]; then
-        log "WARN" "Skipping Gemini MCP setup - no API key provided"
-        return 1
-    fi
-
-    # Store API key for use in install_mcp_server_to_cli
-    export GEMINI_API_KEY="$api_key"
-    return 0
-}
-
 # Function to add MCP server to a specific CLI (claude or gemini)
 install_mcp_server_to_cli() {
     local cli="$1"  # claude or gemini
@@ -307,6 +291,12 @@ install_mcp_server_to_cli() {
     if ! command -v "$cli" &>/dev/null; then
         log "WARN" "$cli CLI not available, skipping MCP installation for $name"
         return 1
+    fi
+
+    # Gemini doesn't support MCP protocol
+    if [[ "$cli" == "gemini" ]]; then
+        log "INFO" "Gemini CLI does not support MCP protocol (Model Context Protocol is Anthropic-specific)"
+        return 0
     fi
 
     # Check if already installed
@@ -321,11 +311,6 @@ install_mcp_server_to_cli() {
         "brave-search")
             if [[ -n "$BRAVE_SEARCH_API_KEY" ]]; then
                 modified_cmd="$cmd --api-key $BRAVE_SEARCH_API_KEY"
-            fi
-            ;;
-        "gemini")
-            if [[ -n "$GEMINI_API_KEY" ]]; then
-                modified_cmd="$cmd --api-key $GEMINI_API_KEY"
             fi
             ;;
         "serena")
@@ -366,9 +351,6 @@ install_mcp_server() {
             "brave-search")
                 setup_brave_search || { FAILED_MCP_INSTALLS+=("$name"); return; }
                 ;;
-            "gemini")
-                setup_gemini_mcp || { FAILED_MCP_INSTALLS+=("$name"); return; }
-                ;;
             *)
                 log "ERROR" "Unknown special setup for $name"
                 FAILED_MCP_INSTALLS+=("$name")
@@ -387,9 +369,6 @@ install_mcp_server() {
             "brave-search")
                 actual_cmd="npx @modelcontextprotocol/server-brave-search"
                 ;;
-            "gemini")
-                actual_cmd="npx @aliargun/mcp-server-gemini"
-                ;;
         esac
     fi
 
@@ -398,10 +377,7 @@ install_mcp_server() {
         install_mcp_server_to_cli "claude" "$name" "$actual_cmd" || FAILED_MCP_INSTALLS+=("claude:$name")
     fi
 
-    # Install to Gemini if not claude-only
-    if [[ "$CLAUDE_ONLY" != "true" ]]; then
-        install_mcp_server_to_cli "gemini" "$name" "$actual_cmd" || FAILED_MCP_INSTALLS+=("gemini:$name")
-    fi
+    # Note: MCP is Anthropic-specific, Gemini uses different extension mechanisms
 }
 
 main() {
@@ -457,8 +433,7 @@ main() {
         # GitHub integration
         "github:npx @modelcontextprotocol/server-github"
 
-        # Gemini integration
-        "gemini:SPECIAL"
+        # Note: Gemini doesn't support MCP protocol - it's Anthropic-specific
     )
 
     for entry in "${MCP_SERVERS[@]}"; do
@@ -477,8 +452,7 @@ main() {
     fi
     
     if [[ "$CLAUDE_ONLY" != "true" ]] && command -v gemini &>/dev/null; then
-        log "INFO" "Gemini MCP servers:"
-        gemini mcp list 2>/dev/null || log "WARN" "Could not list Gemini MCP servers"
+        log "INFO" "Gemini CLI installed (Note: MCP protocol is Claude-specific)"
     fi
 
     if [[ "${#FAILED_MCP_INSTALLS[@]}" -gt 0 ]]; then

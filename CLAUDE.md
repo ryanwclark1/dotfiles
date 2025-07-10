@@ -111,17 +111,16 @@ A separate installation script handles AI CLIs (Claude and Gemini) and MCP serve
 - Adds `~/.npm-global/bin` to PATH for globally installed packages
 - Installs Claude CLI (`@anthropic-ai/claude-code`)
 - Attempts to install Gemini CLI (if available via npm)
-- Installs MCP servers to BOTH Claude and Gemini CLIs including:
+- Installs MCP servers to Claude CLI only (MCP is an Anthropic-specific protocol) including:
   - Core tools (filesystem, git, fetch, time, memory, sequential-thinking, everything)
   - Language support (language-server, run-python)
   - Code intelligence (serena)
   - Browser automation (playwright, puppeteer)
   - Search capabilities (brave-search)
   - External integrations (github, context7)
-  - Gemini integration (Gemini MCP server)
 - Supports CLI-specific flags:
-  - `--claude-only`: Only install MCP servers to Claude
-  - `--gemini-only`: Only install MCP servers to Gemini
+  - `--claude-only`: Only install Claude CLI (skip Gemini)
+  - `--gemini-only`: Only install Gemini CLI (skip Claude and MCPs)
   - `--exclude=name1,name2`: Skip specific MCP servers
   - `--only=name1,name2`: Only install specific MCP servers
 - If npm is not installed, provides guidance on installing Node.js
@@ -178,9 +177,9 @@ When `bootstrap.sh` runs:
 When `install-ai-tools.sh` runs:
 - NPM global directory is set up at `~/.npm-global/`
 - Claude Code and Gemini CLI are installed globally via npm
-- Configured MCP servers are installed to both Claude and Gemini
+- MCP servers are installed to Claude only (MCP is Anthropic-specific)
 - PATH is updated to include `~/.npm-global/bin`
-- Each MCP server is registered with both AI CLIs for maximum compatibility
+- Note: Gemini uses different extension mechanisms, not MCP
 
 When `update_dots.sh` runs:
 - Current configs are copied back from `~/.config/` to this repository
