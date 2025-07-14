@@ -1,0 +1,101 @@
+{
+  "theme": "GitHub",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/home", "/workspace"],
+      "trust": true
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git"],
+      "trust": true
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-fetch"],
+      "trust": true
+    },
+    "time": {
+      "command": "uvx",
+      "args": ["mcp-server-time", "--local-timezone=America/Chicago"],
+      "trust": true
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-sequential-thinking"],
+      "trust": true
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"],
+      "trust": true
+    },
+    "everything": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-everything"],
+      "trust": true
+    },
+    "language-server": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-language-server"],
+      "trust": true
+    },
+    "run-python": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-run-python"],
+      "trust": true
+    },
+    "serena": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-serena"],
+      "trust": true
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwrightai/mcp"],
+      "trust": true
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-puppeteer"],
+      "trust": true
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "YOUR_BRAVE_API_KEY_HERE"
+      },
+      "trust": true
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+      },
+      "trust": true
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-context7"],
+      "trust": true
+    },
+    "memory-bank": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory-bank"],
+      "trust": true
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://db/accent-ai"
+      ],
+      "trust": true
+    }
+  }
+}

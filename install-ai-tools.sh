@@ -199,6 +199,62 @@ install_gemini_if_missing() {
     fi
 }
 
+setup_gemini_mcp_config() {
+    if ! command -v gemini &>/dev/null; then
+        log "WARN" "Gemini CLI not installed, skipping MCP configuration setup"
+        return 1
+    fi
+    
+    log "INFO" "Setting up Gemini MCP configuration..."
+    
+    # Create Gemini config directory
+    mkdir -p "$HOME/.gemini"
+    
+    # Check if template exists
+    local template_file="$SCRIPT_DIR/gemini/settings.json"
+    if [[ ! -f "$template_file" ]]; then
+        log "WARN" "Gemini settings template not found at $template_file"
+        return 1
+    fi
+    
+    # Check if user already has a config
+    local user_config="$HOME/.gemini/settings.json"
+    if [[ -f "$user_config" ]]; then
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            read -p "Gemini config already exists. Overwrite? [y/N]: " response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                log "INFO" "Keeping existing Gemini configuration"
+                return 0
+            fi
+        else
+            log "INFO" "Gemini config exists, skipping setup (use --force to override)"
+            return 0
+        fi
+    fi
+    
+    # Copy template to user config
+    cp "$template_file" "$user_config"
+    
+    # Update API keys if available
+    if [[ -n "$BRAVE_SEARCH_API_KEY" ]]; then
+        sed -i.bak 's/"BRAVE_API_KEY": "YOUR_BRAVE_API_KEY_HERE"/"BRAVE_API_KEY": "'"$BRAVE_SEARCH_API_KEY"'"/' "$user_config"
+        rm -f "$user_config.bak"
+    fi
+    
+    # Check for GitHub token in environment
+    if [[ -n "$GITHUB_TOKEN" || -n "$GITHUB_PERSONAL_ACCESS_TOKEN" ]]; then
+        local token="${GITHUB_TOKEN:-$GITHUB_PERSONAL_ACCESS_TOKEN}"
+        sed -i.bak 's/"GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"/"GITHUB_PERSONAL_ACCESS_TOKEN": "'"$token"'"/' "$user_config"
+        rm -f "$user_config.bak"
+    fi
+    
+    log "SUCCESS" "Gemini MCP configuration created at $user_config"
+    log "INFO" "Note: MCP servers in Gemini work differently than Claude"
+    log "INFO" "Please review the configuration and update any API keys as needed"
+    
+    return 0
+}
+
 
 install_uvx_if_missing() {
     if ! command -v uvx &>/dev/null; then
@@ -400,6 +456,10 @@ main() {
     
     if [[ "$CLAUDE_ONLY" != "true" ]]; then
         install_gemini_if_missing
+        # Setup Gemini MCP config if Gemini was installed
+        if command -v gemini &>/dev/null; then
+            setup_gemini_mcp_config
+        fi
     fi
 
     MCP_SERVERS=(
