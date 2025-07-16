@@ -486,27 +486,44 @@ main() {
     fi
 
     MCP_SERVERS=(
-        # Core MCP servers from modelcontextprotocol (only published ones)
+        # Note: Many MCP servers below are not published to npm registry yet,
+        # but npx can still download them directly from GitHub.
+        # This may cause "not found" warnings on first run, but they should
+        # work after npx downloads them.
+
+        # Core MCP servers from modelcontextprotocol
+        # These exist but aren't in npm registry:
+        "git:npx @modelcontextprotocol/server-git"
+        "fetch:npx @modelcontextprotocol/server-fetch"
+        "time:npx @modelcontextprotocol/server-time"
+        
+        # These are published and working:
         "sequential-thinking:npx @modelcontextprotocol/server-sequential-thinking"
         "memory:npx @modelcontextprotocol/server-memory"
         "everything:npx @modelcontextprotocol/server-everything"
 
-        # Browser automation
+        # Language and code tools
+        # These don't exist yet:
+        "language-server:npx @isaacphi/language-server-mcp"
+        "run-python:npx @pydantic/mcp-run-python"
+
+        # Memory and storage
+        # This doesn't exist:
+        "memory-bank:npx @alioshr/memory-bank-mcp"
+        
+        # Browser automation (both work via npx):
         "playwright:npx @playwright/mcp@latest"
         "puppeteer:npx @modelcontextprotocol/server-puppeteer"
+        
+        # This doesn't exist:
+        "context7:npx @context7/mcp-server"
 
-        # GitHub integration
+        # Search capabilities
+        # "brave-search:SPECIAL"
+
+        # GitHub integration (works via npx):
         "github:npx @modelcontextprotocol/server-github"
 
-        # Note: The following servers are not yet published on npm:
-        # - @modelcontextprotocol/server-git
-        # - @modelcontextprotocol/server-fetch
-        # - @modelcontextprotocol/server-time
-        # - @isaacphi/language-server-mcp
-        # - @pydantic/mcp-run-python
-        # - @alioshr/memory-bank-mcp
-        # - @context7/mcp-server
-        
         # Note: Gemini doesn't support MCP protocol - it's Anthropic-specific
     )
 
@@ -560,8 +577,10 @@ main() {
     else
         log "SUCCESS" "AI CLIs and all MCP servers installed successfully 🎉"
         log "INFO" "Restart your shell or source your shell config to ensure PATH is updated"
-        log "INFO" "Note: Some MCP servers may fail to connect on first run - this is normal"
-        log "INFO" "They will download dependencies on first actual use"
+        log "WARN" "Note: Some MCP servers may fail to connect on first run - this is expected!"
+        log "INFO" "Many MCP servers aren't in npm registry yet but will download from GitHub when used"
+        log "INFO" "Known non-existent servers: git, fetch, time, language-server, run-python, memory-bank, context7"
+        log "INFO" "These will show connection errors until the packages are published"
         log "INFO" "MCP servers were installed at user scope"
         log "INFO" "They will be available when you start Claude from any directory"
     fi
