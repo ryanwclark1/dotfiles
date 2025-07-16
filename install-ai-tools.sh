@@ -381,20 +381,14 @@ install_mcp_server_to_cli() {
             ;;
     esac
 
-    # Install the MCP server
-    log "INFO" "Installing MCP '$name' to $cli..."
+    # Add MCP server at user scope (available in all directories)
+    log "INFO" "Installing MCP '$name' to $cli at user scope..."
     
-    # Try to add globally first (this adds to user's home config)
-    local original_dir=$(pwd)
-    cd "$HOME" 2>/dev/null || true
-    
-    if $cli mcp add "$name" -- $modified_cmd; then
-        log "SUCCESS" "MCP '$name' installed to $cli (global)"
-        cd "$original_dir"
+    if $cli mcp add --scope user "$name" -- $modified_cmd; then
+        log "SUCCESS" "MCP '$name' installed to $cli at user scope (available everywhere)"
         return 0
     else
         log "ERROR" "Failed to install MCP '$name' to $cli"
-        cd "$original_dir"
         return 1
     fi
 }
@@ -571,7 +565,7 @@ main() {
         log "INFO" "Restart your shell or source your shell config to ensure PATH is updated"
         log "INFO" "Note: Some MCP servers may fail to connect on first run - this is normal"
         log "INFO" "They will download dependencies on first actual use"
-        log "INFO" "MCP servers were installed to your home directory configuration"
+        log "INFO" "MCP servers were installed at user scope"
         log "INFO" "They will be available when you start Claude from any directory"
     fi
 }
