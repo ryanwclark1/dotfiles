@@ -154,11 +154,35 @@ ensure_path_in_shell_rc() {
 
 run_checks_only() {
     log "INFO" "Running system check..."
-    command -v npm &>/dev/null && log "INFO" "npm found: $(npm --version)" || error "npm not found"
-    command -v claude &>/dev/null && log "INFO" "claude found: $(claude --version)" || log "WARN" "claude not installed"
-    command -v gemini &>/dev/null && log "INFO" "gemini found: $(gemini --version 2>/dev/null || echo 'version unknown')" || log "WARN" "gemini not installed"
-    command -v npx &>/dev/null && log "INFO" "npx found" || error "npx is missing"
-    command -v uvx &>/dev/null && log "INFO" "uvx (Python runner) found" || log "WARN" "uvx not found (needed for Serena)"
+    if command -v npm &>/dev/null; then
+        log "INFO" "npm found: $(npm --version)"
+    else
+        error "npm not found"
+    fi
+    
+    if command -v claude &>/dev/null; then
+        log "INFO" "claude found: $(claude --version)"
+    else
+        log "WARN" "claude not installed"
+    fi
+    
+    if command -v gemini &>/dev/null; then
+        log "INFO" "gemini found: $(gemini --version 2>/dev/null || echo 'version unknown')"
+    else
+        log "WARN" "gemini not installed"
+    fi
+    
+    if command -v npx &>/dev/null; then
+        log "INFO" "npx found"
+    else
+        error "npx is missing"
+    fi
+    
+    if command -v uvx &>/dev/null; then
+        log "INFO" "uvx (Python runner) found"
+    else
+        log "WARN" "uvx not found (needed for Serena)"
+    fi
 
     log "INFO" "Current Claude MCP servers:"
     claude mcp list 2>/dev/null || log "WARN" "No Claude MCP servers registered"
