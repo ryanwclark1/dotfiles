@@ -422,9 +422,9 @@ install_mcp_server() {
             "serena")
                 actual_cmd="uvx --from git+https://github.com/oraios/serena serena-mcp-server"
                 ;;
-            "brave-search")
-                actual_cmd="npx @modelcontextprotocol/server-brave-search"
-                ;;
+            # "brave-search")
+            #     actual_cmd="npx @modelcontextprotocol/server-brave-search"
+            #     ;;
         esac
     fi
 
@@ -488,7 +488,7 @@ main() {
         "context7:npx @context7/mcp-server"
 
         # Search capabilities
-        "brave-search:SPECIAL"
+        # "brave-search:SPECIAL"
 
         # GitHub integration
         "github:npx @modelcontextprotocol/server-github"
@@ -512,6 +512,17 @@ main() {
         FAILED_MCP_INSTALLS+=("ccusage")
     fi
 
+    # Pre-cache MCP server packages to avoid connection issues
+    log "INFO" "Pre-caching MCP server packages..."
+    for entry in "${MCP_SERVERS[@]}"; do
+        IFS=':' read -r name cmd <<< "$entry"
+        if [[ "$cmd" =~ ^npx\ (@[^\ ]+) ]]; then
+            local package="${BASH_REMATCH[1]}"
+            log "INFO" "Pre-caching $package..."
+            npx --yes "$package" --help >/dev/null 2>&1 || true
+        fi
+    done
+
     log "SUCCESS" "All installations processed ✅"
 
     # Show installed MCP servers for each CLI
@@ -534,6 +545,8 @@ main() {
     else
         log "SUCCESS" "AI CLIs and all MCP servers installed successfully 🎉"
         log "INFO" "Restart your shell or source your shell config to ensure PATH is updated"
+        log "INFO" "Note: Some MCP servers may fail to connect on first run - this is normal"
+        log "INFO" "They will download dependencies on first actual use"
     fi
 }
 
