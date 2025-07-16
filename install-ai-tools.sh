@@ -486,30 +486,27 @@ main() {
     fi
 
     MCP_SERVERS=(
-        # Core MCP servers from modelcontextprotocol
-        "git:npx @modelcontextprotocol/server-git"
-        "fetch:npx @modelcontextprotocol/server-fetch"
-        "time:npx @modelcontextprotocol/server-time"
+        # Core MCP servers from modelcontextprotocol (only published ones)
         "sequential-thinking:npx @modelcontextprotocol/server-sequential-thinking"
         "memory:npx @modelcontextprotocol/server-memory"
         "everything:npx @modelcontextprotocol/server-everything"
 
-        # Language and code tools
-        "language-server:npx @isaacphi/language-server-mcp"
-        "run-python:npx @pydantic/mcp-run-python"
-
-        # Memory and storage
-        "memory-bank:npx @alioshr/memory-bank-mcp"
+        # Browser automation
         "playwright:npx @playwright/mcp@latest"
         "puppeteer:npx @modelcontextprotocol/server-puppeteer"
-        "context7:npx @context7/mcp-server"
-
-        # Search capabilities
-        # "brave-search:SPECIAL"
 
         # GitHub integration
         "github:npx @modelcontextprotocol/server-github"
 
+        # Note: The following servers are not yet published on npm:
+        # - @modelcontextprotocol/server-git
+        # - @modelcontextprotocol/server-fetch
+        # - @modelcontextprotocol/server-time
+        # - @isaacphi/language-server-mcp
+        # - @pydantic/mcp-run-python
+        # - @alioshr/memory-bank-mcp
+        # - @context7/mcp-server
+        
         # Note: Gemini doesn't support MCP protocol - it's Anthropic-specific
     )
 
