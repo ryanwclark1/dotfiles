@@ -544,16 +544,8 @@ main() {
         FAILED_MCP_INSTALLS+=("ccusage")
     fi
 
-    # Pre-cache MCP server packages to avoid connection issues
-    log "INFO" "Pre-caching MCP server packages..."
-    for entry in "${MCP_SERVERS[@]}"; do
-        IFS=':' read -r name cmd <<< "$entry"
-        if [[ "$cmd" =~ ^npx\ (@[^\ ]+) ]]; then
-            local package="${BASH_REMATCH[1]}"
-            log "INFO" "Pre-caching $package..."
-            npx --yes "$package" --help >/dev/null 2>&1 || true
-        fi
-    done
+    # Note: We don't pre-cache MCP packages as they don't support standard CLI flags
+    # They will be downloaded on first use by Claude
 
     log "SUCCESS" "All installations processed ✅"
 
