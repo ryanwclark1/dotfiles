@@ -19,6 +19,7 @@ EXCLUDE_MCP=""
 ONLY_MCP=""
 CLAUDE_ONLY=false
 GEMINI_ONLY=false
+USE_STANDARD_FILESYSTEM=false
 
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,6 +52,8 @@ while [[ $# -gt 0 ]]; do
             CLAUDE_ONLY=true ;;
         --gemini-only)
             GEMINI_ONLY=true ;;
+        --use-standard-filesystem)
+            USE_STANDARD_FILESYSTEM=true ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo "Installs AI CLIs (Claude, Gemini) and MCP servers for enhanced functionality"
@@ -64,6 +67,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --only=name1,name2      Only install listed MCPs"
             echo "  --claude-only           Only install Claude CLI (skip Gemini)"
             echo "  --gemini-only           Only install Gemini CLI (skip Claude and MCPs)"
+            echo "  --use-standard-filesystem  Use standard filesystem MCP instead of Serena"
             exit 0 ;;
         *)
             echo -e "${RED}❌ Unknown option: $1${NC}" >&2
@@ -306,14 +310,15 @@ setup_serena() {
     mkdir -p "$project_dir"
     mkdir -p "$HOME/.serena"
 
-    cat > "$HOME/.serena/config.json" <<EOF
-{
-  "defaultProject": "$project_dir",
-  "context": "ide-assistant"
-}
+    # Create proper YAML config file as per documentation
+    cat > "$HOME/.serena/serena_config.yml" <<EOF
+# Serena configuration
+project: $project_dir
+context: ide-assistant
 EOF
 
     export SERENA_PROJECT_DIR="$project_dir"
+    log "INFO" "Created Serena config at ~/.serena/serena_config.yml"
 
     return 0  # Return success for config setup
 }
@@ -378,11 +383,18 @@ install_mcp_server_to_cli() {
 
     # Install the MCP server
     log "INFO" "Installing MCP '$name' to $cli..."
+    
+    # Try to add globally first (this adds to user's home config)
+    local original_dir=$(pwd)
+    cd "$HOME" 2>/dev/null || true
+    
     if $cli mcp add "$name" -- $modified_cmd; then
-        log "SUCCESS" "MCP '$name' installed to $cli"
+        log "SUCCESS" "MCP '$name' installed to $cli (global)"
+        cd "$original_dir"
         return 0
     else
         log "ERROR" "Failed to install MCP '$name' to $cli"
+        cd "$original_dir"
         return 1
     fi
 }
@@ -462,9 +474,25 @@ main() {
         fi
     fi
 
+    # Determine which filesystem server to use
+    local filesystem_choice="serena"  # Default to serena since it's more feature-rich
+    
+    # Check if flag was set
+    if [[ "$USE_STANDARD_FILESYSTEM" == "true" ]]; then
+        filesystem_choice="standard"
+    elif [[ "$INTERACTIVE" == "true" ]]; then
+        echo "Choose filesystem MCP server:"
+        echo "1) Serena (recommended - includes filesystem + code intelligence)"
+        echo "2) Standard filesystem server (basic filesystem operations only)"
+        read -p "Enter choice [1-2] (default: 1): " choice
+        case "$choice" in
+            2) filesystem_choice="standard" ;;
+            *) filesystem_choice="serena" ;;
+        esac
+    fi
+
     MCP_SERVERS=(
         # Core MCP servers from modelcontextprotocol
-        "filesystem:npx @modelcontextprotocol/server-filesystem /home /workspace"
         "git:npx @modelcontextprotocol/server-git"
         "fetch:npx @modelcontextprotocol/server-fetch"
         "time:npx @modelcontextprotocol/server-time"
@@ -478,11 +506,6 @@ main() {
 
         # Memory and storage
         "memory-bank:npx @alioshr/memory-bank-mcp"
-
-        # Code search and editing
-        "serena:SPECIAL"
-
-        # Browser automation and web tools
         "playwright:npx @playwright/mcp@latest"
         "puppeteer:npx @modelcontextprotocol/server-puppeteer"
         "context7:npx @context7/mcp-server"
@@ -495,6 +518,15 @@ main() {
 
         # Note: Gemini doesn't support MCP protocol - it's Anthropic-specific
     )
+
+    # Add filesystem server based on choice
+    if [[ "$filesystem_choice" == "serena" ]]; then
+        MCP_SERVERS+=("serena:SPECIAL")
+        log "INFO" "Using Serena for filesystem operations and code intelligence"
+    else
+        MCP_SERVERS+=("filesystem:npx @modelcontextprotocol/server-filesystem /home /workspace")
+        log "INFO" "Using standard filesystem MCP server"
+    fi
 
     for entry in "${MCP_SERVERS[@]}"; do
         IFS=':' read -r name cmd <<< "$entry"
@@ -547,6 +579,8 @@ main() {
         log "INFO" "Restart your shell or source your shell config to ensure PATH is updated"
         log "INFO" "Note: Some MCP servers may fail to connect on first run - this is normal"
         log "INFO" "They will download dependencies on first actual use"
+        log "INFO" "MCP servers were installed to your home directory configuration"
+        log "INFO" "They will be available when you start Claude from any directory"
     fi
 }
 
