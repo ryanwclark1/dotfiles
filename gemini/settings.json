@@ -62,14 +62,6 @@
       "args": ["@modelcontextprotocol/server-puppeteer"],
       "trust": true
     },
-    "brave-search": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "YOUR_BRAVE_API_KEY_HERE"
-      },
-      "trust": true
-    },
     "github": {
       "command": "npx",
       "args": ["@modelcontextprotocol/server-github"],

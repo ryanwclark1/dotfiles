@@ -155,14 +155,14 @@ run_checks_only() {
     command -v gemini &>/dev/null && log "INFO" "gemini found: $(gemini --version 2>/dev/null || echo 'version unknown')" || log "WARN" "gemini not installed"
     command -v npx &>/dev/null && log "INFO" "npx found" || error "npx is missing"
     command -v uvx &>/dev/null && log "INFO" "uvx (Python runner) found" || log "WARN" "uvx not found (needed for Serena)"
-    
+
     log "INFO" "Current Claude MCP servers:"
     claude mcp list 2>/dev/null || log "WARN" "No Claude MCP servers registered"
-    
+
     if command -v gemini &>/dev/null; then
         log "INFO" "Gemini CLI is installed (Note: MCP protocol is Claude-specific)"
     fi
-    
+
     log "SUCCESS" "Environment check complete ✅"
     exit 0
 }
@@ -204,19 +204,19 @@ setup_gemini_mcp_config() {
         log "WARN" "Gemini CLI not installed, skipping MCP configuration setup"
         return 1
     fi
-    
+
     log "INFO" "Setting up Gemini MCP configuration..."
-    
+
     # Create Gemini config directory
     mkdir -p "$HOME/.gemini"
-    
+
     # Check if template exists
     local template_file="$SCRIPT_DIR/gemini/settings.json"
     if [[ ! -f "$template_file" ]]; then
         log "WARN" "Gemini settings template not found at $template_file"
         return 1
     fi
-    
+
     # Check if user already has a config
     local user_config="$HOME/.gemini/settings.json"
     if [[ -f "$user_config" ]]; then
@@ -231,27 +231,27 @@ setup_gemini_mcp_config() {
             return 0
         fi
     fi
-    
+
     # Copy template to user config
     cp "$template_file" "$user_config"
-    
+
     # Update API keys if available
     if [[ -n "$BRAVE_SEARCH_API_KEY" ]]; then
         sed -i.bak 's/"BRAVE_API_KEY": "YOUR_BRAVE_API_KEY_HERE"/"BRAVE_API_KEY": "'"$BRAVE_SEARCH_API_KEY"'"/' "$user_config"
         rm -f "$user_config.bak"
     fi
-    
+
     # Check for GitHub token in environment
     if [[ -n "$GITHUB_TOKEN" || -n "$GITHUB_PERSONAL_ACCESS_TOKEN" ]]; then
         local token="${GITHUB_TOKEN:-$GITHUB_PERSONAL_ACCESS_TOKEN}"
         sed -i.bak 's/"GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"/"GITHUB_PERSONAL_ACCESS_TOKEN": "'"$token"'"/' "$user_config"
         rm -f "$user_config.bak"
     fi
-    
+
     log "SUCCESS" "Gemini MCP configuration created at $user_config"
     log "INFO" "Note: MCP servers in Gemini work differently than Claude"
     log "INFO" "Please review the configuration and update any API keys as needed"
-    
+
     return 0
 }
 
@@ -404,9 +404,9 @@ install_mcp_server() {
             "serena")
                 setup_serena || { FAILED_MCP_INSTALLS+=("$name"); return; }
                 ;;
-            "brave-search")
-                setup_brave_search || { FAILED_MCP_INSTALLS+=("$name"); return; }
-                ;;
+            # "brave-search")
+            #     setup_brave_search || { FAILED_MCP_INSTALLS+=("$name"); return; }
+            #     ;;
             *)
                 log "ERROR" "Unknown special setup for $name"
                 FAILED_MCP_INSTALLS+=("$name")
@@ -453,7 +453,7 @@ main() {
     if [[ "$GEMINI_ONLY" != "true" ]]; then
         install_claude_if_missing
     fi
-    
+
     if [[ "$CLAUDE_ONLY" != "true" ]]; then
         install_gemini_if_missing
         # Setup Gemini MCP config if Gemini was installed
@@ -503,14 +503,23 @@ main() {
 
     install_playwright_browsers
 
+    # Install additional tools
+    log "INFO" "Installing ccusage (Claude usage tracking tool)..."
+    if npm install -g ccusage@latest; then
+        log "SUCCESS" "ccusage installed successfully!"
+    else
+        log "WARN" "Failed to install ccusage"
+        FAILED_MCP_INSTALLS+=("ccusage")
+    fi
+
     log "SUCCESS" "All installations processed ✅"
-    
+
     # Show installed MCP servers for each CLI
     if [[ "$GEMINI_ONLY" != "true" ]] && command -v claude &>/dev/null; then
         log "INFO" "Claude MCP servers:"
         claude mcp list || log "WARN" "Could not list Claude MCP servers"
     fi
-    
+
     if [[ "$CLAUDE_ONLY" != "true" ]] && command -v gemini &>/dev/null; then
         log "INFO" "Gemini CLI installed (Note: MCP protocol is Claude-specific)"
     fi
