@@ -548,6 +548,9 @@ main() {
         # GitHub integration (works via npx):
         "github:npx @modelcontextprotocol/server-github"
 
+        # Asana integration (remote MCP server):
+        "asana:npx mcp-remote https://mcp.asana.com/sse"
+
         # Note: Gemini doesn't support MCP protocol - it's Anthropic-specific
     )
 

@@ -6,6 +6,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a personal dotfiles repository that manages configuration files and utility scripts for a development environment. The repository uses a structured approach to organize configurations for various CLI tools and provides automated setup and update scripts.
 
+## Important Scripts and Commands
+
+### Initial Setup
+```bash
+# Clean install all tools and configurations
+./bootstrap.sh
+
+# Install AI CLIs and MCP servers (requires npm)
+./install-ai-tools.sh
+```
+
+### Testing and Validation
+```bash
+# Test MCP servers functionality
+./test-mcp.sh
+
+# Clean up duplicate dotfiles entries in .bashrc
+./cleanup_bashrc.sh
+```
+
+### VSCode Extension Management
+```bash
+# Download VSCode extensions as VSIX files
+./get-vsix.sh
+```
+
 ## Architecture
 
 ### Core Components
@@ -163,6 +189,7 @@ All scripts in `scripts/` are available as commands after running `bootstrap.sh`
 - `sshget`: SSH key management
 - `sysz`: System management with fzf
 - `wifiz`: WiFi network management
+- `fix-starship`: Fix starship prompt initialization issues (primarily bash/zsh conflicts)
 
 ## Configuration Locations
 
@@ -201,3 +228,36 @@ The repository uses Catppuccin theme variants consistently across:
 - **Git integration** in prompt, file listings, and utility scripts
 - **Tmux integration** with custom modules for system monitoring
 - **Eza configuration** with custom theme in `eza/theme.yml`
+
+## Shell Aliases
+
+Current shell aliases defined in `alias` file:
+- `fd`: Enhanced file finder with hidden files, color, follow symlinks, no git requirement
+- `jqless`: JSON viewer with color highlighting through jq and bat
+- `lg`: Shortcut for lazygit
+
+## Script Patterns and Best Practices
+
+### Error Handling
+- Scripts use `set -euo pipefail` for strict error handling
+- Dynamic path detection avoids hardcoded paths
+- Comprehensive validation before operations
+
+### Platform Support
+- Cross-platform support (Linux/macOS, AMD64/ARM64/ARMv7)
+- Architecture-aware binary downloads
+- Fallback mechanisms for missing tools
+
+### Backup File Exclusions
+The `update_dots.sh` script automatically excludes backup files with these patterns:
+- `*.bak`, `*.backup`, `*.back`, `*.old`, `*.orig`
+- `*.save`, `*.swp`, `*.swo`, `*.tmp`, `*.temp`
+- `*~`, `*.backup.*`, `*.*.backup`
+- `.#*`, `#*#`
+
+## Development Workflow
+
+1. **Making Changes**: Edit configurations in `~/.config/` during normal use
+2. **Syncing Changes**: Run `./update_dots.sh` to copy changes back to repository
+3. **Adding New Tools**: Follow the bootstrap script extension guide above
+4. **Testing**: Use provided test scripts (`test-mcp.sh`) to validate functionality
