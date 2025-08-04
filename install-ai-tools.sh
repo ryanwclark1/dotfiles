@@ -159,25 +159,25 @@ run_checks_only() {
     else
         error "npm not found"
     fi
-    
+
     if command -v claude &>/dev/null; then
         log "INFO" "claude found: $(claude --version)"
     else
         log "WARN" "claude not installed"
     fi
-    
+
     if command -v gemini &>/dev/null; then
         log "INFO" "gemini found: $(gemini --version 2>/dev/null || echo 'version unknown')"
     else
         log "WARN" "gemini not installed"
     fi
-    
+
     if command -v npx &>/dev/null; then
         log "INFO" "npx found"
     else
         error "npx is missing"
     fi
-    
+
     if command -v uvx &>/dev/null; then
         log "INFO" "uvx (Python runner) found"
     else
@@ -407,7 +407,7 @@ install_mcp_server_to_cli() {
 
     # Add MCP server at user scope (available in all directories)
     log "INFO" "Installing MCP '$name' to $cli at user scope..."
-    
+
     if $cli mcp add --scope user "$name" -- $modified_cmd; then
         log "SUCCESS" "MCP '$name' installed to $cli at user scope (available everywhere)"
         return 0
@@ -474,8 +474,11 @@ main() {
     declare -a FAILED_MCP_INSTALLS=()
 
     log "INFO" "Preparing environment..."
-    mkdir -p "$NPM_GLOBAL_DIR"
-    npm config set prefix "$NPM_GLOBAL_DIR"
+    if [[ -z "$NVM_DIR" ]]; then
+        # Only set npm prefix if nvm is not being used
+        mkdir -p "$NPM_GLOBAL_DIR"
+        npm config set prefix "$NPM_GLOBAL_DIR"
+    fi
     export PATH="$NPM_GLOBAL_DIR/bin:$PATH"
     ensure_path_in_shell_rc
 
@@ -494,7 +497,7 @@ main() {
 
     # Determine which filesystem server to use
     local filesystem_choice="serena"  # Default to serena since it's more feature-rich
-    
+
     # Check if flag was set
     if [[ "$USE_STANDARD_FILESYSTEM" == "true" ]]; then
         filesystem_choice="standard"
@@ -520,7 +523,7 @@ main() {
         "git:npx @modelcontextprotocol/server-git"
         "fetch:npx @modelcontextprotocol/server-fetch"
         "time:npx @modelcontextprotocol/server-time"
-        
+
         # These are published and working:
         "sequential-thinking:npx @modelcontextprotocol/server-sequential-thinking"
         "memory:npx @modelcontextprotocol/server-memory"
@@ -534,11 +537,11 @@ main() {
         # Memory and storage
         # This doesn't exist:
         "memory-bank:npx @alioshr/memory-bank-mcp"
-        
+
         # Browser automation (both work via npx):
         "playwright:npx @playwright/mcp@latest"
         "puppeteer:npx @modelcontextprotocol/server-puppeteer"
-        
+
         # This doesn't exist:
         "context7:npx @context7/mcp-server"
 
