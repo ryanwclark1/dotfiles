@@ -1,0 +1,14 @@
+{
+    "openai": {
+        "baseURL": "http://127.0.0.1:11434/v1",
+        "apiKey": "ollama"
+    },
+    "models": {
+        "default": "qwen3-coder:30b"
+    },
+    "settings": {
+        "temperature": 0.1,
+        "maxTokens": 8192,
+        "topP": 0.9
+    }
+}

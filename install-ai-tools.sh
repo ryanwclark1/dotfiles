@@ -19,7 +19,10 @@ EXCLUDE_MCP=""
 ONLY_MCP=""
 CLAUDE_ONLY=false
 GEMINI_ONLY=false
+QWEN_ONLY=false
 USE_STANDARD_FILESYSTEM=false
+OLLAMA_HOST="127.0.0.1"
+OLLAMA_PORT="11434"
 
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,8 +55,14 @@ while [[ $# -gt 0 ]]; do
             CLAUDE_ONLY=true ;;
         --gemini-only)
             GEMINI_ONLY=true ;;
+        --qwen-only)
+            QWEN_ONLY=true ;;
         --use-standard-filesystem)
             USE_STANDARD_FILESYSTEM=true ;;
+        --ollama-host=*)
+            OLLAMA_HOST="${1#*=}" ;;
+        --ollama-port=*)
+            OLLAMA_PORT="${1#*=}" ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo "Installs AI CLIs (Claude, Gemini) and MCP servers for enhanced functionality"
@@ -67,7 +76,10 @@ while [[ $# -gt 0 ]]; do
             echo "  --only=name1,name2      Only install listed MCPs"
             echo "  --claude-only           Only install Claude CLI (skip Gemini)"
             echo "  --gemini-only           Only install Gemini CLI (skip Claude and MCPs)"
+            echo "  --qwen-only             Only install Qwen CLI (skip Claude and MCPs)"
             echo "  --use-standard-filesystem  Use standard filesystem MCP instead of Serena"
+            echo "  --ollama-host=HOST      Set Ollama host (default: 127.0.0.1)"
+            echo "  --ollama-port=PORT      Set Ollama port (default: 11434)"
             exit 0 ;;
         *)
             echo -e "${RED}❌ Unknown option: $1${NC}" >&2
@@ -172,6 +184,12 @@ run_checks_only() {
         log "WARN" "gemini not installed"
     fi
 
+    if command -v qwen &>/dev/null; then
+        log "INFO" "qwen found: $(qwen --version 2>/dev/null || echo 'version unknown')"
+    else
+        log "WARN" "qwen not installed"
+    fi
+
     if command -v npx &>/dev/null; then
         log "INFO" "npx found"
     else
@@ -189,6 +207,10 @@ run_checks_only() {
 
     if command -v gemini &>/dev/null; then
         log "INFO" "Gemini CLI is installed (Note: MCP protocol is Claude-specific)"
+    fi
+
+    if command -v qwen &>/dev/null; then
+        log "INFO" "Qwen CLI is installed"
     fi
 
     log "SUCCESS" "Environment check complete ✅"
@@ -227,6 +249,101 @@ install_gemini_if_missing() {
     fi
 }
 
+install_qwen_if_missing() {
+    if ! command -v qwen &>/dev/null; then
+        log "INFO" "Installing Qwen CLI via npm..."
+        # Try multiple known Qwen CLI packages
+        local installed=false
+        for package in "@qwenlm/qwen-code" "qwen-code" "@qwen/cli"; do
+            if npm install -g "$package" 2>/dev/null; then
+                log "SUCCESS" "Qwen CLI installed from $package!"
+                installed=true
+                break
+            fi
+        done
+        if [[ "$installed" == "false" ]]; then
+            log "WARN" "Failed to install Qwen CLI - this is optional, continuing..."
+            log "INFO" "You may need to install Qwen CLI manually or it might not be available via npm yet"
+        fi
+    else
+        log "INFO" "Qwen CLI is already installed"
+    fi
+}
+
+setup_qwen_config() {
+    if ! command -v qwen &>/dev/null; then
+        log "WARN" "Qwen CLI not installed, skipping configuration setup"
+        return 1
+    fi
+
+    log "INFO" "Setting up Qwen configuration..."
+
+    # Check Ollama connectivity
+    log "INFO" "Checking Ollama connectivity at http://$OLLAMA_HOST:$OLLAMA_PORT..."
+    if curl -s "http://$OLLAMA_HOST:$OLLAMA_PORT/api/tags" >/dev/null 2>&1; then
+        log "SUCCESS" "Ollama is accessible"
+    else
+        log "WARN" "Cannot connect to Ollama at http://$OLLAMA_HOST:$OLLAMA_PORT"
+        log "INFO" "Make sure Ollama is running and accessible from this container"
+        log "INFO" "If running in a devcontainer, you may need to configure port forwarding"
+        log "INFO" "or use the host network to access Ollama on the host machine"
+    fi
+
+    # Create Qwen config directory
+    mkdir -p "$HOME/.qwen"
+
+    # Check if user already has a config
+    local user_config="$HOME/.qwen/config.json"
+    if [[ -f "$user_config" ]]; then
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            read -p "Qwen config already exists. Overwrite? [y/N]: " response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                log "INFO" "Keeping existing Qwen configuration"
+                return 0
+            fi
+        else
+            log "INFO" "Qwen config exists, overwriting in non-interactive mode"
+        fi
+    fi
+
+    # Check if template exists
+    local template_file="$SCRIPT_DIR/qwen/config.json"
+    if [[ -f "$template_file" ]]; then
+        # Copy template and replace host/port
+        cp "$template_file" "$user_config"
+        sed -i.bak "s/127.0.0.1:11434/$OLLAMA_HOST:$OLLAMA_PORT/g" "$user_config"
+        rm -f "$user_config.bak"
+    else
+        # Fallback to basic config
+        cat > "$user_config" <<EOF
+{
+  "openai": {
+    "baseURL": "http://$OLLAMA_HOST:$OLLAMA_PORT/v1",
+    "apiKey": "ollama"
+  },
+  "models": {
+    "default": "qwen3-coder:30b"
+  }
+}
+EOF
+    fi
+
+    log "SUCCESS" "Qwen configuration created at $user_config"
+    log "INFO" "Configured to use Ollama at http://$OLLAMA_HOST:$OLLAMA_PORT"
+    log "INFO" "Default model set to qwen3-coder:30b"
+    log "INFO" "You can modify the configuration to use different models or settings"
+
+    # Test Qwen CLI
+    log "INFO" "Testing Qwen CLI..."
+    if qwen --help >/dev/null 2>&1; then
+        log "SUCCESS" "Qwen CLI is working correctly"
+    else
+        log "WARN" "Qwen CLI test failed - you may need to check the installation"
+    fi
+
+    return 0
+}
+
 setup_gemini_mcp_config() {
     if ! command -v gemini &>/dev/null; then
         log "WARN" "Gemini CLI not installed, skipping MCP configuration setup"
@@ -255,8 +372,7 @@ setup_gemini_mcp_config() {
                 return 0
             fi
         else
-            log "INFO" "Gemini config exists, skipping setup (use --force to override)"
-            return 0
+            log "INFO" "Gemini config exists, overwriting in non-interactive mode"
         fi
     fi
 
@@ -323,28 +439,111 @@ install_playwright_browsers() {
 setup_serena() {
     install_uvx_if_missing
 
-    local default_project="/workspace"
-    local project_dir="$default_project"
+    # Use the Serena setup script
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    SERENA_SETUP="$SCRIPT_DIR/setup-serena.sh"
 
-    if [[ "$INTERACTIVE" == "true" ]]; then
-        read -p "Enter Serena project directory [$default_project]: " input
-        project_dir="${input:-$default_project}"
-    fi
+    if [[ -f "$SERENA_SETUP" ]]; then
+        log "INFO" "Using Serena setup script..."
+        # Set INTERACTIVE for the setup script
+        export INTERACTIVE="$INTERACTIVE"
+        source "$SERENA_SETUP"
+        return $?
+    else
+        # Fallback to basic setup
+        log "WARN" "Serena setup script not found, using basic setup..."
 
-    mkdir -p "$project_dir"
-    mkdir -p "$HOME/.serena"
+        local default_project="/workspace"
+        local project_dir="$default_project"
 
-    # Create proper YAML config file as per documentation
-    cat > "$HOME/.serena/serena_config.yml" <<EOF
+        if [[ "$INTERACTIVE" == "true" ]]; then
+            read -p "Enter Serena project directory [$default_project]: " input
+            project_dir="${input:-$default_project}"
+        else
+            log "INFO" "Using default Serena project directory: $default_project"
+        fi
+
+        mkdir -p "$project_dir"
+        mkdir -p "$HOME/.serena"
+
+        # Create basic YAML config file
+        cat > "$HOME/.serena/serena_config.yml" <<EOF
 # Serena configuration
 project: $project_dir
 context: ide-assistant
 EOF
 
-    export SERENA_PROJECT_DIR="$project_dir"
-    log "INFO" "Created Serena config at ~/.serena/serena_config.yml"
+        export SERENA_PROJECT_DIR="$project_dir"
+        log "INFO" "Created basic Serena config at ~/.serena/serena_config.yml"
 
-    return 0  # Return success for config setup
+        return 0
+    fi
+}
+
+setup_genai_toolbox() {
+    # Use the GenAI Toolbox setup script
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    TOOLBOX_SETUP="$SCRIPT_DIR/setup-genai-toolbox.sh"
+
+    if [[ -f "$TOOLBOX_SETUP" ]]; then
+        log "INFO" "Using GenAI Toolbox setup script..."
+        # Set INTERACTIVE for the setup script
+        export INTERACTIVE="$INTERACTIVE"
+        source "$TOOLBOX_SETUP"
+        return $?
+    else
+        # Fallback to basic setup
+        log "WARN" "GenAI Toolbox setup script not found, using basic setup..."
+
+        # Check if GenAI Toolbox is already installed in Claude
+        if claude mcp list 2>/dev/null | grep -q "^genai-toolbox\b"; then
+            log "INFO" "GenAI Toolbox MCP server already installed in Claude"
+        else
+            log "INFO" "Installing GenAI Toolbox MCP server to Claude..."
+
+            if claude mcp add --scope user genai-toolbox -- npx @googleapis/genai-toolbox; then
+                log "SUCCESS" "GenAI Toolbox MCP server installed successfully!"
+            else
+                log "ERROR" "Failed to install GenAI Toolbox MCP server"
+                return 1
+            fi
+        fi
+
+        return 0
+    fi
+}
+
+setup_context7() {
+    # Use the comprehensive Context7 setup script
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    CONTEXT7_SETUP="$SCRIPT_DIR/setup-context7.sh"
+
+    if [[ -f "$CONTEXT7_SETUP" ]]; then
+        log "INFO" "Using comprehensive Context7 setup script..."
+        # Set INTERACTIVE for the setup script
+        export INTERACTIVE="$INTERACTIVE"
+        source "$CONTEXT7_SETUP"
+        return $?
+    else
+        # Fallback to basic setup
+        log "WARN" "Context7 setup script not found, using basic setup..."
+
+        # Check if Context7 is already installed in Claude
+        if claude mcp list 2>/dev/null | grep -q "^context7\b"; then
+            log "INFO" "Context7 MCP server already installed in Claude"
+        else
+            log "INFO" "Installing Context7 MCP server to Claude..."
+
+            if claude mcp add --scope user context7 -- npx @upstash/context7-mcp; then
+                log "SUCCESS" "Context7 MCP server installed successfully!"
+            else
+                log "ERROR" "Failed to install Context7 MCP server"
+                return 1
+            fi
+        fi
+
+        return 0
+    fi
 }
 
 setup_brave_search() {
@@ -354,6 +553,9 @@ setup_brave_search() {
     local api_key=""
     if [[ "$INTERACTIVE" == "true" ]]; then
         read -p "Enter Brave Search API key (or press Enter to skip): " api_key
+    else
+        log "INFO" "Skipping Brave Search setup in non-interactive mode (no API key provided)"
+        return 1
     fi
 
     if [[ -z "$api_key" ]]; then
@@ -434,6 +636,12 @@ install_mcp_server() {
             "serena")
                 setup_serena || { FAILED_MCP_INSTALLS+=("$name"); return; }
                 ;;
+            "genai-toolbox")
+                setup_genai_toolbox || { FAILED_MCP_INSTALLS+=("$name"); return; }
+                ;;
+            "context7")
+                setup_context7 || { FAILED_MCP_INSTALLS+=("$name"); return; }
+                ;;
             # "brave-search")
             #     setup_brave_search || { FAILED_MCP_INSTALLS+=("$name"); return; }
             #     ;;
@@ -451,6 +659,12 @@ install_mcp_server() {
         case "$name" in
             "serena")
                 actual_cmd="uvx --from git+https://github.com/oraios/serena serena-mcp-server"
+                ;;
+            "genai-toolbox")
+                actual_cmd="npx @googleapis/genai-toolbox"
+                ;;
+            "context7")
+                actual_cmd="npx @upstash/context7-mcp"
                 ;;
             # "brave-search")
             #     actual_cmd="npx @modelcontextprotocol/server-brave-search"
@@ -483,15 +697,23 @@ main() {
     ensure_path_in_shell_rc
 
     # Install CLIs based on flags
-    if [[ "$GEMINI_ONLY" != "true" ]]; then
+    if [[ "$GEMINI_ONLY" != "true" && "$QWEN_ONLY" != "true" ]]; then
         install_claude_if_missing
     fi
 
-    if [[ "$CLAUDE_ONLY" != "true" ]]; then
+    if [[ "$CLAUDE_ONLY" != "true" && "$QWEN_ONLY" != "true" ]]; then
         install_gemini_if_missing
         # Setup Gemini MCP config if Gemini was installed
         if command -v gemini &>/dev/null; then
             setup_gemini_mcp_config
+        fi
+    fi
+
+    if [[ "$CLAUDE_ONLY" != "true" && "$GEMINI_ONLY" != "true" ]]; then
+        install_qwen_if_missing
+        # Setup Qwen config if Qwen was installed
+        if command -v qwen &>/dev/null; then
+            setup_qwen_config
         fi
     fi
 
@@ -510,49 +732,49 @@ main() {
             2) filesystem_choice="standard" ;;
             *) filesystem_choice="serena" ;;
         esac
+    else
+        # Non-interactive mode: use Serena by default
+        filesystem_choice="serena"
+        log "INFO" "Using Serena filesystem MCP server (default in non-interactive mode)"
     fi
 
     MCP_SERVERS=(
-        # Note: Many MCP servers below are not published to npm registry yet,
-        # but npx can still download them directly from GitHub.
-        # This may cause "not found" warnings on first run, but they should
-        # work after npx downloads them.
+        # ========================================
+        # WORKING MCP SERVERS (Published to npm)
+        # ========================================
 
-        # Core MCP servers from modelcontextprotocol
-        # These exist but aren't in npm registry:
-        "git:npx @modelcontextprotocol/server-git"
-        "fetch:npx @modelcontextprotocol/server-fetch"
-        "time:npx @modelcontextprotocol/server-time"
-
-        # These are published and working:
+        # Core MCP servers from modelcontextprotocol (WORKING):
         "sequential-thinking:npx @modelcontextprotocol/server-sequential-thinking"
         "memory:npx @modelcontextprotocol/server-memory"
         "everything:npx @modelcontextprotocol/server-everything"
-
-        # Language and code tools
-        # These don't exist yet:
-        "language-server:npx @isaacphi/language-server-mcp"
-        "run-python:npx @pydantic/mcp-run-python"
-
-        # Memory and storage
-        # This doesn't exist:
-        "memory-bank:npx @alioshr/memory-bank-mcp"
-
-        # Browser automation (both work via npx):
-        "playwright:npx @playwright/mcp@latest"
+        "github:npx @modelcontextprotocol/server-github"
         "puppeteer:npx @modelcontextprotocol/server-puppeteer"
 
-        # This doesn't exist:
-        "context7:npx @context7/mcp-server"
+        # Browser automation (WORKING):
+        "playwright:npx @playwright/mcp@latest"
 
-        # Search capabilities
-        # "brave-search:SPECIAL"
-
-        # GitHub integration (works via npx):
-        "github:npx @modelcontextprotocol/server-github"
-
-        # Asana integration (remote MCP server):
+        # Remote MCP server (WORKING):
         "asana:npx mcp-remote https://mcp.asana.com/sse"
+
+        # Database and AI tools (WORKING):
+        "genai-toolbox:SPECIAL"
+
+        # Code documentation and libraries (WORKING):
+        "context7:SPECIAL"
+
+        # ========================================
+        # EXPERIMENTAL/UNRELEASED SERVERS
+        # ========================================
+        # These servers exist in GitHub repos but aren't published to npm yet.
+        # They may work if installed manually from GitHub, but npx will fail.
+        # Uncomment these when they become available:
+
+        # "git:npx @modelcontextprotocol/server-git"
+        # "fetch:npx @modelcontextprotocol/server-fetch"
+        # "time:npx @modelcontextprotocol/server-time"
+        # "language-server:npx @isaacphi/language-server-mcp"
+        # "run-python:npx @pydantic/mcp-run-python"
+        # "memory-bank:npx @alioshr/memory-bank-mcp"
 
         # Note: Gemini doesn't support MCP protocol - it's Anthropic-specific
     )
@@ -582,6 +804,17 @@ main() {
         FAILED_MCP_INSTALLS+=("ccusage")
     fi
 
+    # Install MCP Inspector for testing and debugging MCP servers
+    log "INFO" "Installing MCP Inspector (testing/debugging tool)..."
+    if npm install -g @modelcontextprotocol/inspector; then
+        log "SUCCESS" "MCP Inspector installed successfully!"
+        log "INFO" "Use 'npx @modelcontextprotocol/inspector' to start the inspector"
+        log "INFO" "This tool helps test and debug MCP servers"
+    else
+        log "WARN" "Failed to install MCP Inspector"
+        FAILED_MCP_INSTALLS+=("mcp-inspector")
+    fi
+
     # Note: We don't pre-cache MCP packages as they don't support standard CLI flags
     # They will be downloaded on first use by Claude
 
@@ -597,6 +830,10 @@ main() {
         log "INFO" "Gemini CLI installed (Note: MCP protocol is Claude-specific)"
     fi
 
+    if [[ "$CLAUDE_ONLY" != "true" && "$GEMINI_ONLY" != "true" ]] && command -v qwen &>/dev/null; then
+        log "INFO" "Qwen CLI installed and configured for Ollama integration"
+    fi
+
     if [[ "${#FAILED_MCP_INSTALLS[@]}" -gt 0 ]]; then
         log "WARN" "Some components failed to install:"
         for failed in "${FAILED_MCP_INSTALLS[@]}"; do
@@ -607,10 +844,9 @@ main() {
     else
         log "SUCCESS" "AI CLIs and all MCP servers installed successfully 🎉"
         log "INFO" "Restart your shell or source your shell config to ensure PATH is updated"
-        log "WARN" "Note: Some MCP servers may fail to connect on first run - this is expected!"
-        log "INFO" "Many MCP servers aren't in npm registry yet but will download from GitHub when used"
-        log "INFO" "Known non-existent servers: git, fetch, time, language-server, run-python, memory-bank, context7"
-        log "INFO" "These will show connection errors until the packages are published"
+        log "INFO" "Only working MCP servers were installed (published to npm registry)"
+        log "INFO" "Experimental servers (git, fetch, time, language-server, run-python, memory-bank, context7)"
+        log "INFO" "are commented out until they become available in npm registry"
         log "INFO" "MCP servers were installed at user scope"
         log "INFO" "They will be available when you start Claude from any directory"
     fi

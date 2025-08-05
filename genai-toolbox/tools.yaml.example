@@ -1,0 +1,103 @@
+# Google GenAI Toolbox Configuration Example
+# Copy this file to ~/.genai-toolbox/tools.yaml and customize for your needs
+
+sources:
+  # Example PostgreSQL source
+  my-pg-source:
+    kind: postgres
+    host: 127.0.0.1
+    port: 5432
+    database: your_database
+    user: your_user
+    password: your_password
+    # Or use environment variable: password: ${DB_PASSWORD}
+
+  # Example BigQuery source (requires Google Cloud credentials)
+  my-bigquery-source:
+    kind: bigquery
+    project: your-gcp-project-id
+    # Uses default credentials or set: credentials: ${GOOGLE_APPLICATION_CREDENTIALS}
+
+  # Example MySQL source
+  my-mysql-source:
+    kind: mysql
+    host: 127.0.0.1
+    port: 3306
+    database: your_database
+    user: your_user
+    password: your_password
+
+tools:
+  # Example: Search hotels by name
+  search-hotels-by-name:
+    kind: postgres-sql
+    source: my-pg-source
+    description: Search for hotels based on name.
+    parameters:
+      - name: name
+        type: string
+        description: The name of the hotel.
+    statement: SELECT * FROM hotels WHERE name ILIKE '%' || $1 || '%';
+
+  # Example: Search hotels by location
+  search-hotels-by-location:
+    kind: postgres-sql
+    source: my-pg-source
+    description: Search for hotels based on location.
+    parameters:
+      - name: location
+        type: string
+        description: The location of the hotel.
+    statement: SELECT * FROM hotels WHERE location ILIKE '%' || $1 || '%';
+
+  # Example: Book a hotel
+  book-hotel:
+    kind: postgres-sql
+    source: my-pg-source
+    description: Book a hotel by its ID.
+    parameters:
+      - name: hotel_id
+        type: string
+        description: The ID of the hotel to book.
+    statement: UPDATE hotels SET booked = B'1' WHERE id = $1;
+
+  # Example: BigQuery SQL execution
+  bigquery-execute:
+    kind: bigquery-execute-sql
+    source: my-bigquery-source
+    description: Execute a BigQuery SQL statement.
+    parameters:
+      - name: sql
+        type: string
+        description: The SQL query to execute.
+
+  # Example: MySQL SQL execution
+  mysql-execute:
+    kind: mysql-execute-sql
+    source: my-mysql-source
+    description: Execute a MySQL SQL statement.
+    parameters:
+      - name: sql
+        type: string
+        description: The SQL query to execute.
+
+toolsets:
+  # Default toolset with all tools
+  default:
+    - search-hotels-by-name
+    - search-hotels-by-location
+    - book-hotel
+    - bigquery-execute
+    - mysql-execute
+
+  # Database-specific toolsets
+  postgres-tools:
+    - search-hotels-by-name
+    - search-hotels-by-location
+    - book-hotel
+
+  bigquery-tools:
+    - bigquery-execute
+
+  mysql-tools:
+    - mysql-execute
