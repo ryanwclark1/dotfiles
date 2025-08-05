@@ -52,12 +52,22 @@ serena-init [project_name] [project_path]
 # Add project: context7-add [project_name] [project_path]
 ```
 
+### Sourcebot (Source Code Search)
+```bash
+# Test sourcebot MCP installation
+./test-sourcebot-mcp.sh
+
+# Sourcebot provides source code search and analysis capabilities
+# Configured with: SOURCEBOT_HOST=http://localhost:3002
+```
+
 ## Features
 
 - **Non-interactive mode** for automated installations
 - **Enhanced Serena setup** with web dashboard and language servers
 - **GenAI Toolbox integration** for database operations
 - **Comprehensive Context7 setup** with uv workspace support and advanced indexing
+- **Sourcebot MCP server** for source code search and analysis
 - **Qwen CLI integration** with Ollama for local model inference
 - **MCP Inspector** for testing and debugging
 - **Comprehensive error handling** and logging

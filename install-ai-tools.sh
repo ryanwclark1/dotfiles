@@ -546,6 +546,26 @@ setup_context7() {
     fi
 }
 
+setup_sourcebot() {
+    log "INFO" "Setting up Sourcebot MCP server..."
+
+    # Check if Sourcebot is already installed in Claude
+    if claude mcp list 2>/dev/null | grep -q "^sourcebot\b"; then
+        log "INFO" "Sourcebot MCP server already installed in Claude"
+    else
+        log "INFO" "Installing Sourcebot MCP server to Claude..."
+
+        if claude mcp add sourcebot -e SOURCEBOT_HOST=http://localhost:3002 -e SOURCEBOT_API_KEY=sourcebot-aee0d48126b846c89a4ad153f444f6b01ea6c3ac4555192952aa9a10b2e0688c -- npx -y @sourcebot/mcp@latest; then
+            log "SUCCESS" "Sourcebot MCP server installed successfully!"
+        else
+            log "ERROR" "Failed to install Sourcebot MCP server"
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
 setup_brave_search() {
     log "INFO" "Setting up Brave Search MCP..."
     log "WARN" "Brave Search requires an API key from https://brave.com/search/api/"
@@ -594,18 +614,18 @@ install_mcp_server_to_cli() {
 
     # Handle special command modifications
     local modified_cmd="$cmd"
-    case "$name" in
-        "brave-search")
-            if [[ -n "$BRAVE_SEARCH_API_KEY" ]]; then
-                modified_cmd="$cmd --api-key $BRAVE_SEARCH_API_KEY"
-            fi
-            ;;
-        "serena")
-            if [[ -n "$SERENA_PROJECT_DIR" ]]; then
-                modified_cmd="uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project $SERENA_PROJECT_DIR"
-            fi
-            ;;
-    esac
+            case "$name" in
+            "brave-search")
+                if [[ -n "$BRAVE_SEARCH_API_KEY" ]]; then
+                    modified_cmd="$cmd --api-key $BRAVE_SEARCH_API_KEY"
+                fi
+                ;;
+            "serena")
+                if [[ -n "$SERENA_PROJECT_DIR" ]]; then
+                    modified_cmd="uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project $SERENA_PROJECT_DIR"
+                fi
+                ;;
+        esac
 
     # Add MCP server at user scope (available in all directories)
     log "INFO" "Installing MCP '$name' to $cli at user scope..."
@@ -642,6 +662,9 @@ install_mcp_server() {
             "context7")
                 setup_context7 || { FAILED_MCP_INSTALLS+=("$name"); return; }
                 ;;
+            "sourcebot")
+                setup_sourcebot || { FAILED_MCP_INSTALLS+=("$name"); return; }
+                ;;
             # "brave-search")
             #     setup_brave_search || { FAILED_MCP_INSTALLS+=("$name"); return; }
             #     ;;
@@ -665,6 +688,9 @@ install_mcp_server() {
                 ;;
             "context7")
                 actual_cmd="npx @upstash/context7-mcp"
+                ;;
+            "sourcebot")
+                actual_cmd="npx -y @sourcebot/mcp@latest"
                 ;;
             # "brave-search")
             #     actual_cmd="npx @modelcontextprotocol/server-brave-search"
@@ -761,6 +787,9 @@ main() {
 
         # Code documentation and libraries (WORKING):
         "context7:SPECIAL"
+
+        # Source code search and analysis (WORKING):
+        "sourcebot:SPECIAL"
 
         # ========================================
         # EXPERIMENTAL/UNRELEASED SERVERS
