@@ -1,0 +1,93 @@
+{
+    "mcpServers": {
+        "sequential-thinking": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-sequential-thinking"
+            ],
+            "env": {}
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-memory"
+            ],
+            "env": {}
+        },
+        "everything": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-everything"
+            ],
+            "env": {}
+        },
+        "github": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {}
+        },
+        "puppeteer": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-puppeteer"
+            ],
+            "env": {}
+        },
+        "playwright": {
+            "command": "npx",
+            "args": [
+                "@playwright/mcp@latest"
+            ],
+            "env": {}
+        },
+        "asana": {
+            "type": "sse",
+            "url": "https://mcp.asana.com/sse",
+            "env": {}
+        },
+        "serena": {
+            "command": "uvx",
+            "args": [
+                "--from",
+                "git+https://github.com/oraios/serena",
+                "serena-mcp-server"
+            ],
+            "env": {
+                "SERENA_PROJECT_DIR": "${SERENA_PROJECT_DIR:-/workspace}"
+            }
+        },
+        "genai-toolbox": {
+            "command": "npx",
+            "args": [
+                "@googleapis/genai-toolbox"
+            ],
+            "env": {}
+        },
+        "context7": {
+            "command": "npx",
+            "args": [
+                "@upstash/context7-mcp"
+            ],
+            "env": {}
+        },
+        "sourcebot": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@sourcebot/mcp@latest"
+            ],
+            "env": {}
+        },
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-filesystem",
+                "/home",
+                "/workspace"
+            ],
+            "env": {}
+        }
+    }
+}

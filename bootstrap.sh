@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Bootstrap script for dotfiles setup
+# Note: Shell configurations are nvm-aware and will not add npm-global/bin to PATH
+# when nvm is detected to prevent conflicts with nvm's npm management.
+
 # Dynamic path detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$SCRIPT_DIR"

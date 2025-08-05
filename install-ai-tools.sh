@@ -9,6 +9,9 @@ set -o pipefail
 # Installs Claude CLI, Gemini CLI, and MCP servers
 # Note: MCP (Model Context Protocol) is Anthropic-specific and only works with Claude
 # Gemini uses different extension mechanisms
+#
+# NVM Compatibility: This script automatically detects nvm usage and avoids
+# setting npm prefix/globalconfig to prevent conflicts with nvm.
 
 # ---- Default Config ----
 FORCE_NON_INTERACTIVE=false
@@ -143,6 +146,7 @@ safe_append() {
 }
 
 ensure_path_in_shell_rc() {
+    local nvm_in_use="${1:-false}"
     local rc_file
     rc_file=$(detect_shell_rc)
 
@@ -161,7 +165,12 @@ ensure_path_in_shell_rc() {
         return
     fi
 
-    safe_append "$rc_file" "$PATH_UPDATE_LINE"
+    # Only add PATH line if not using nvm
+    if [[ "$nvm_in_use" == "false" ]]; then
+        safe_append "$rc_file" "$PATH_UPDATE_LINE"
+    else
+        log "INFO" "Skipping PATH update in shell config (using nvm)"
+    fi
 }
 
 run_checks_only() {
@@ -252,15 +261,12 @@ install_gemini_if_missing() {
 install_qwen_if_missing() {
     if ! command -v qwen &>/dev/null; then
         log "INFO" "Installing Qwen CLI via npm..."
-        # Try multiple known Qwen CLI packages
+        # Try the correct Qwen CLI package
         local installed=false
-        for package in "@qwenlm/qwen-code" "qwen-code" "@qwen/cli"; do
-            if npm install -g "$package" 2>/dev/null; then
-                log "SUCCESS" "Qwen CLI installed from $package!"
-                installed=true
-                break
-            fi
-        done
+        if npm install -g "@qwen-code/qwen-code@latest" 2>/dev/null; then
+            log "SUCCESS" "Qwen CLI installed from @qwen-code/qwen-code!"
+            installed=true
+        fi
         if [[ "$installed" == "false" ]]; then
             log "WARN" "Failed to install Qwen CLI - this is optional, continuing..."
             log "INFO" "You may need to install Qwen CLI manually or it might not be available via npm yet"
@@ -600,10 +606,13 @@ install_mcp_server_to_cli() {
         return 1
     fi
 
-    # Gemini doesn't support MCP protocol
-    if [[ "$cli" == "gemini" ]]; then
-        log "INFO" "Gemini CLI does not support MCP protocol (Model Context Protocol is Anthropic-specific)"
-        return 0
+    # Check if CLI supports MCP protocol
+    if [[ "$cli" == "gemini" || "$cli" == "qwen" ]]; then
+        # Test if CLI supports mcp commands
+        if ! $cli mcp --help &>/dev/null; then
+            log "INFO" "$cli CLI does not support MCP protocol"
+            return 0
+        fi
     fi
 
     # Check if already installed
@@ -698,8 +707,15 @@ install_mcp_server() {
         esac
     fi
 
-    # Install to Claude if not gemini-only
-    if [[ "$GEMINI_ONLY" != "true" ]]; then
+    # Install to appropriate CLI based on mode
+    if [[ "$QWEN_ONLY" == "true" ]]; then
+        # Install to Qwen if qwen-only mode
+        install_mcp_server_to_cli "qwen" "$name" "$actual_cmd" || FAILED_MCP_INSTALLS+=("qwen:$name")
+    elif [[ "$GEMINI_ONLY" == "true" ]]; then
+        # Install to Gemini if gemini-only mode
+        install_mcp_server_to_cli "gemini" "$name" "$actual_cmd" || FAILED_MCP_INSTALLS+=("gemini:$name")
+    elif [[ "$CLAUDE_ONLY" != "true" ]]; then
+        # Install to Claude if not claude-only (default behavior)
         install_mcp_server_to_cli "claude" "$name" "$actual_cmd" || FAILED_MCP_INSTALLS+=("claude:$name")
     fi
 
@@ -714,13 +730,36 @@ main() {
     declare -a FAILED_MCP_INSTALLS=()
 
     log "INFO" "Preparing environment..."
-    if [[ -z "$NVM_DIR" ]]; then
+
+    # Check if nvm is being used (multiple ways to detect)
+    local nvm_in_use=false
+    if [[ -n "$NVM_DIR" ]] || command -v nvm &>/dev/null || [[ -n "$NVM_BIN" ]]; then
+        nvm_in_use=true
+        log "INFO" "nvm detected - skipping npm prefix configuration"
+
+        # Check for conflicting npm settings
+        local npm_prefix=$(npm config get prefix 2>/dev/null)
+        local npm_globalconfig=$(npm config get globalconfig 2>/dev/null)
+
+        if [[ -n "$npm_prefix" && "$npm_prefix" != "$(npm config get prefix --location=global 2>/dev/null)" ]] || [[ -n "$npm_globalconfig" ]]; then
+            log "WARN" "Detected npm prefix/globalconfig settings that may conflict with nvm"
+            log "INFO" "If you encounter issues, run: nvm use --delete-prefix"
+            log "INFO" "Or manually remove prefix/globalconfig from ~/.npmrc"
+        fi
+    fi
+
+    if [[ "$nvm_in_use" == "false" ]]; then
         # Only set npm prefix if nvm is not being used
         mkdir -p "$NPM_GLOBAL_DIR"
         npm config set prefix "$NPM_GLOBAL_DIR"
+        export PATH="$NPM_GLOBAL_DIR/bin:$PATH"
+        ensure_path_in_shell_rc "false"
+    else
+        # When using nvm, ensure PATH includes npm global bin
+        export PATH="$PATH"
+        log "INFO" "Using nvm - npm global packages will be installed to nvm's global directory"
+        ensure_path_in_shell_rc "true"
     fi
-    export PATH="$NPM_GLOBAL_DIR/bin:$PATH"
-    ensure_path_in_shell_rc
 
     # Install CLIs based on flags
     if [[ "$GEMINI_ONLY" != "true" && "$QWEN_ONLY" != "true" ]]; then

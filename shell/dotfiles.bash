@@ -3,7 +3,11 @@
 
 # Environment variables
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.npm-global/bin:$PATH"
+
+# Add npm global bin to PATH only if not using nvm
+if [[ -z "$NVM_DIR" ]] && ! command -v nvm &>/dev/null; then
+    export PATH="$HOME/.npm-global/bin:$PATH"
+fi
 
 # Source custom aliases
 [ -f ~/.config/alias ] && source ~/.config/alias
