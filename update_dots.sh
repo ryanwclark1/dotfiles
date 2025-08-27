@@ -104,9 +104,9 @@ copy_directories() {
             rsync "${rsync_args[@]}" "$src_dir/" "$dest_dir/"
         else
             cp -rfL "$src_dir" "$dest_dir"
-            # Remove any backup files that were copied
+            # Remove any backup files and directories that were copied
             for pattern in "${BACKUP_PATTERNS[@]}"; do
-                find "$dest_dir" -type f -name "$pattern" -delete 2>/dev/null || true
+                find "$dest_dir" -name "$pattern" -delete 2>/dev/null || true
             done
         fi
         chown -R "$USER" "$dest_dir"
