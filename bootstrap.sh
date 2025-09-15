@@ -5,6 +5,12 @@ set -euo pipefail
 # Note: Shell configurations are nvm-aware and will not add npm-global/bin to PATH
 # when nvm is detected to prevent conflicts with nvm's npm management.
 
+# Check if running in a container environment
+if [[ -n "${REMOTE_CONTAINERS:-}" || -n "${CODESPACES:-}" || -f "/.dockerenv" || -n "${CONTAINER_ID:-}" ]]; then
+    echo "Container environment detected, using container-safe bootstrap..."
+    exec "$(dirname "${BASH_SOURCE[0]}")/bootstrap-container.sh" "$@"
+fi
+
 # Dynamic path detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$SCRIPT_DIR"
