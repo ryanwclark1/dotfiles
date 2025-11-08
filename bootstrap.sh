@@ -5,6 +5,12 @@ set -euo pipefail
 # Note: Shell configurations are nvm-aware and will not add npm-global/bin to PATH
 # when nvm is detected to prevent conflicts with nvm's npm management.
 
+# Configuration
+DRY_RUN="${DRY_RUN:-false}"
+LOG_LEVEL="${LOG_LEVEL:-INFO}"  # DEBUG, INFO, WARN, ERROR
+LOG_FILE="${LOG_FILE:-$HOME/.dotfiles-install.log}"
+VERBOSE="${VERBOSE:-false}"
+
 # Check if running in a container environment
 if [[ -n "${REMOTE_CONTAINERS:-}" || -n "${CODESPACES:-}" || -f "/.dockerenv" || -n "${CONTAINER_ID:-}" ]]; then
     echo "Container environment detected, using container-safe bootstrap..."
@@ -21,7 +27,70 @@ BIN_DIR="$HOME/.local/bin"
 # Required tools for validation
 REQUIRED_TOOLS=(git curl jq)
 
+# Usage information
+usage() {
+    cat << EOF
+Usage: $0 [OPTIONS]
+
+Bootstrap dotfiles and install CLI tools.
+
+OPTIONS:
+    -h, --help          Show this help message
+    -d, --dry-run       Preview changes without executing
+    -v, --verbose       Enable verbose logging
+    --log-file FILE     Set log file path (default: ~/.dotfiles-install.log)
+
+ENVIRONMENT VARIABLES:
+    DRY_RUN=true        Same as --dry-run
+    VERBOSE=true        Same as --verbose
+    LOG_LEVEL=DEBUG     Set log level (DEBUG, INFO, WARN, ERROR)
+    LOG_FILE=path       Set log file path
+
+EXAMPLES:
+    $0                  # Normal installation
+    $0 --dry-run        # Preview what would be installed
+    $0 --verbose        # Verbose output
+    DRY_RUN=true $0     # Using environment variable
+
+EOF
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        --log-file)
+            LOG_FILE="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# Display mode
+if [[ "$DRY_RUN" == "true" ]]; then
+    echo "🔍 DRY RUN MODE - No changes will be made"
+    echo ""
+fi
+
 echo "Setting up dotfiles and installing CLI tools..."
+[[ "$DRY_RUN" == "true" ]] && echo "Log file: $LOG_FILE"
+echo ""
 
 # Architecture and platform detection
 detect_platform() {
@@ -109,12 +178,50 @@ declare -A TOOL_CONFIG=(
 
 # Utility functions
 log() {
-    echo "[$1] $2"
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+
+    # Color codes
+    local color_reset='\033[0m'
+    local color_debug='\033[0;36m'    # Cyan
+    local color_info='\033[0;34m'     # Blue
+    local color_warn='\033[1;33m'     # Yellow
+    local color_error='\033[0;31m'    # Red
+    local color_dryrun='\033[0;35m'   # Magenta
+
+    local color=""
+    case "$level" in
+        DEBUG) color="$color_debug" ;;
+        INFO)  color="$color_info" ;;
+        WARN)  color="$color_warn" ;;
+        ERROR) color="$color_error" ;;
+        DRYRUN) color="$color_dryrun" ;;
+    esac
+
+    # Log to file
+    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+
+    # Log to console with colors
+    if [[ "$VERBOSE" == "true" ]] || [[ "$level" != "DEBUG" ]]; then
+        echo -e "${color}[$level]${color_reset} $message"
+    fi
 }
 
 error() {
-    log "ERROR" "$1" >&2
+    log "ERROR" "$*" >&2
     exit 1
+}
+
+dry_run() {
+    local action="$*"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log "DRYRUN" "Would execute: $action"
+        return 0
+    else
+        return 1
+    fi
 }
 
 check_dependencies() {
@@ -361,7 +468,9 @@ check_and_install_tools() {
 
 setup_directories() {
     log "INFO" "Setting up directories..."
-    mkdir -p "$BIN_DIR" "$CONFIG_DIR"
+    if ! dry_run "mkdir -p $BIN_DIR $CONFIG_DIR"; then
+        mkdir -p "$BIN_DIR" "$CONFIG_DIR"
+    fi
 }
 
 copy_configurations() {
@@ -377,7 +486,11 @@ copy_configurations() {
             rsync_cmd="$rsync_cmd -E"
         fi
 
-        $rsync_cmd "$DOTFILES_DIR/" "$CONFIG_DIR/"
+        if dry_run "$rsync_cmd $DOTFILES_DIR/ $CONFIG_DIR/"; then
+            :  # Dry run message already shown
+        else
+            $rsync_cmd "$DOTFILES_DIR/" "$CONFIG_DIR/"
+        fi
     else
         # Fallback to manual copying
         for item in "$DOTFILES_DIR"/*; do
