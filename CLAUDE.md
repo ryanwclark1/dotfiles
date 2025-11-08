@@ -23,7 +23,7 @@ This is a personal dotfiles repository that manages configuration files and util
 ./test-mcp.sh
 
 # Clean up duplicate dotfiles entries in .bashrc
-./cleanup_bashrc.sh
+./scripts/cleanup_bashrc.sh
 ```
 
 ### VSCode Extension Management

@@ -89,5 +89,5 @@ serena-init [project_name] [project_path]
 ./scripts/mcp-inspector
 
 # Clean up failing MCP servers
-./cleanup-failing-mcps.sh
+./scripts/cleanup-failing-mcps.sh
 ```
