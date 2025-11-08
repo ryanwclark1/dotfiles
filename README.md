@@ -26,7 +26,7 @@ A comprehensive installer for AI CLIs (Claude, Gemini) and MCP servers with enha
 ### Serena (Coding Agent)
 ```bash
 # Enhanced Serena setup with web dashboard and language servers
-./setup-serena.sh
+./setup/setup-serena.sh
 
 # Quick start Serena
 serena [project_path] [mode]
@@ -38,7 +38,7 @@ serena-init [project_name] [project_path]
 ### GenAI Toolbox (Database Tools)
 ```bash
 # Setup GenAI Toolbox for database operations
-./setup-genai-toolbox.sh
+./setup/setup-genai-toolbox.sh
 
 # Configure databases in ~/.genai-toolbox/tools.yaml
 ```
@@ -46,7 +46,7 @@ serena-init [project_name] [project_path]
 ### Context7 (Code Documentation)
 ```bash
 # Comprehensive Context7 setup with uv workspace support
-./setup-context7.sh
+./setup/setup-context7.sh
 
 # Initialize project: context7-init [project_name] [project_path]
 # Add project: context7-add [project_name] [project_path]
@@ -55,7 +55,7 @@ serena-init [project_name] [project_path]
 ### Sourcebot (Source Code Search)
 ```bash
 # Test sourcebot MCP installation
-./test-sourcebot-mcp.sh
+./tests/test-sourcebot-mcp.sh
 
 # Sourcebot provides source code search and analysis capabilities
 # Configured with: SOURCEBOT_HOST=http://localhost:3002
@@ -83,7 +83,7 @@ serena-init [project_name] [project_path]
 
 ```bash
 # Test non-interactive mode
-./test-non-interactive.sh
+./tests/test-non-interactive.sh
 
 # Test MCP Inspector
 ./scripts/mcp-inspector
