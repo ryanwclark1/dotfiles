@@ -1,0 +1,46 @@
+# Test Dockerfile for dotfiles installation
+# Tests installation in a clean Ubuntu environment
+
+FROM ubuntu:22.04
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install basic dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    wget \
+    jq \
+    sudo \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to non-root user
+USER testuser
+WORKDIR /home/testuser
+
+# Set up environment
+ENV HOME=/home/testuser
+ENV USER=testuser
+
+# Copy dotfiles repository
+COPY --chown=testuser:testuser . /home/testuser/dotfiles
+
+WORKDIR /home/testuser/dotfiles
+
+# Run installation
+RUN ./bootstrap.sh --verbose
+
+# Validate installation
+RUN ./scripts/validate-install.sh
+
+# Run health check
+RUN ./scripts/health-check.sh || true
+
+# Set default command
+CMD ["/bin/bash"]

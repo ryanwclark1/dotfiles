@@ -330,3 +330,55 @@ The scripts include professional-grade error handling:
 - Atomic operations where possible
 - Safe path handling (spaces, special chars)
 
+
+## 🐳 Docker Testing
+
+Test your dotfiles in isolated Docker containers:
+
+```bash
+# Quick test (fastest, ~2-3 min)
+make docker-test
+
+# Full installation test (~10-15 min)
+make docker-test-full
+
+# Test on multiple distributions
+make docker-test-multi
+
+# Interactive testing environment
+make docker-shell
+```
+
+### Why Docker Testing?
+
+- ✅ **Clean Environment** - Test in pristine system
+- ✅ **Reproducibility** - Consistent results
+- ✅ **Multi-distro** - Test Ubuntu, Debian, Alpine
+- ✅ **CI Integration** - Automate testing
+- ✅ **Safe** - No impact on your system
+
+### Docker Test Modes
+
+**Quick Test** (Development):
+- Runs `bootstrap.sh --dry-run`
+- Executes test suite
+- Fast feedback (~2-3 minutes)
+
+**Full Test** (Release):
+- Complete installation
+- All tools installed
+- Validation + health checks
+- Comprehensive (~10-15 minutes)
+
+**Multi-Distro** (Compatibility):
+- Ubuntu 22.04
+- Debian Bullseye
+- Alpine Linux
+
+**Interactive** (Debugging):
+- Full shell access
+- Manual testing
+- Explore environment
+
+See [Docker Testing Guide](docs/docker-testing.md) for complete documentation.
+

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Full installation test (Ubuntu 22.04)
+  dotfiles-test-ubuntu:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    image: dotfiles-test:ubuntu-22.04
+    container_name: dotfiles-test-ubuntu
+    volumes:
+      - .:/home/testuser/dotfiles:ro
+    command: /bin/bash -c "cd /home/testuser/dotfiles && ./scripts/validate-install.sh && ./scripts/health-check.sh"
+
+  # Quick test (faster)
+  dotfiles-test-quick:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-quick
+    image: dotfiles-test:quick
+    container_name: dotfiles-test-quick
+    volumes:
+      - .:/home/testuser/dotfiles:ro
+    command: /bin/bash -c "cd /home/testuser/dotfiles && ./run-tests.sh"
+
+  # Interactive testing environment
+  dotfiles-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    image: dotfiles-test:ubuntu-22.04
+    container_name: dotfiles-dev
+    volumes:
+      - .:/home/testuser/dotfiles
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Alpine Linux test
+  dotfiles-test-alpine:
+    image: alpine:latest
+    container_name: dotfiles-test-alpine
+    volumes:
+      - .:/dotfiles:ro
+    working_dir: /dotfiles
+    command: sh -c "apk add --no-cache bash git curl jq && ./run-tests.sh bootstrap configs scripts"
+
+  # Debian test
+  dotfiles-test-debian:
+    image: debian:bullseye
+    container_name: dotfiles-test-debian
+    volumes:
+      - .:/home/testuser/dotfiles:ro
+    command: bash -c "apt-get update && apt-get install -y git curl jq sudo && useradd -m testuser && cd /home/testuser/dotfiles && su testuser -c './bootstrap.sh --dry-run && ./run-tests.sh'"

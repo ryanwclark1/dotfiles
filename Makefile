@@ -135,3 +135,27 @@ doctor: ## Run full diagnostic (validate + health-check)
 	@$(MAKE) validate-install
 	@$(MAKE) health-check
 	@echo "$(GREEN)Diagnostic complete!$(NC)"
+
+docker-test: ## Run quick Docker test
+	@echo "$(BLUE)Running quick Docker test...$(NC)"
+	@./scripts/test-in-docker.sh quick
+
+docker-test-full: ## Run full Docker installation test
+	@echo "$(BLUE)Running full Docker test...$(NC)"
+	@./scripts/test-in-docker.sh full
+
+docker-test-multi: ## Test on multiple distributions
+	@echo "$(BLUE)Testing on multiple distributions...$(NC)"
+	@./scripts/test-in-docker.sh multi
+
+docker-shell: ## Start interactive Docker container for testing
+	@echo "$(BLUE)Starting interactive Docker container...$(NC)"
+	@./scripts/test-in-docker.sh interactive
+
+docker-build: ## Build Docker test image
+	@echo "$(BLUE)Building Docker test image...$(NC)"
+	@./scripts/test-in-docker.sh build
+
+docker-clean: ## Clean up Docker test images
+	@echo "$(BLUE)Cleaning up Docker test images...$(NC)"
+	@./scripts/test-in-docker.sh clean
