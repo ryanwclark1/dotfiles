@@ -81,8 +81,21 @@ serena-init [project_name] [project_path]
 
 ## Testing
 
+The repository includes a comprehensive testing framework to ensure reliability.
+
 ```bash
-# Test non-interactive mode
+# Run all tests
+./run-tests.sh
+
+# Run specific test suite
+./run-tests.sh bootstrap
+./run-tests.sh configs
+./run-tests.sh scripts
+
+# List available test suites
+./run-tests.sh --list
+
+# Test non-interactive installation mode
 ./tests/test-non-interactive.sh
 
 # Test MCP Inspector
@@ -91,3 +104,5 @@ serena-init [project_name] [project_path]
 # Clean up failing MCP servers
 ./scripts/cleanup-failing-mcps.sh
 ```
+
+See [Testing Guide](docs/testing-guide.md) for details on writing and running tests.
