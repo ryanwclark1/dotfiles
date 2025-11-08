@@ -1,6 +1,14 @@
 # AI Tools Installer & Dotfiles
 
-A comprehensive dotfiles repository with integrated AI CLI tools, automated testing, and professional development workflow.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](VERSION)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI Tests](https://img.shields.io/badge/CI-passing-brightgreen.svg)](.github/workflows/test.yml)
+[![Shell](https://img.shields.io/badge/shell-bash%20%7C%20zsh-lightgrey.svg)](bootstrap.sh)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos-lightgrey.svg)](CLAUDE.md)
+
+A comprehensive dotfiles repository with integrated AI CLI tools, automated testing, Docker support, and professional development workflow.
+
+---
 
 ## ⚡ Quick Start
 
@@ -45,6 +53,30 @@ make test
 # Preview only (no changes)
 ./bootstrap.sh --dry-run
 ```
+
+### Uninstallation
+
+Clean removal of all dotfiles installations:
+
+```bash
+# Preview what will be removed
+./uninstall.sh --dry-run
+
+# Uninstall with backup
+./uninstall.sh --backup
+
+# Remove only configs, keep tools
+./uninstall.sh --keep-tools
+
+# Quick uninstall (no prompts)
+./uninstall.sh --yes
+```
+
+The uninstall script removes:
+- Configuration files from `~/.config/`
+- Custom scripts from `~/.local/bin/`
+- Shell integration from `~/.bashrc` and `~/.zshrc`
+- Optionally: installed tools (unless `--keep-tools` is used)
 
 ### AI Tools Installation
 
@@ -178,6 +210,31 @@ make setup-dev
 # - Development dependencies
 ```
 
+### Shell Completions
+
+Enable tab completion for all dotfiles commands:
+
+**Bash:**
+```bash
+# Add to ~/.bashrc
+source ~/.config/dotfiles/completions/bash/dotfiles
+```
+
+**Zsh:**
+```zsh
+# Add to ~/.zshrc (before compinit)
+fpath=(~/.config/dotfiles/completions/zsh $fpath)
+autoload -Uz compinit
+compinit
+```
+
+Provides completions for:
+- `bootstrap.sh`, `uninstall.sh`, `run-tests.sh`
+- `test-in-docker.sh`, `validate-install.sh`, `health-check.sh`
+- `make` targets (when in dotfiles directory)
+
+See [completions/README.md](completions/README.md) for details.
+
 ### Running Checks Locally
 
 ```bash
@@ -186,7 +243,7 @@ make ci
 
 # Individual checks
 make test          # Run test suite
-make lint          # ShellCheck linting  
+make lint          # ShellCheck linting
 make validate      # Validate configs
 ```
 
@@ -228,14 +285,38 @@ Quick tips:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
+Quick checklist:
 1. Fork the repository
 2. Create a feature branch
 3. Add tests for new features
 4. Ensure all tests pass: `make test`
 5. Run linting: `make lint`
-6. Submit a pull request
+6. Update documentation as needed
+7. Submit a pull request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Coding standards
+- Testing requirements
+- Commit message guidelines
+- Pull request process
+- Adding new tools
+
+## 📋 Versioning & Releases
+
+This project follows [Semantic Versioning](https://semver.org/):
+- **Current Version:** See [VERSION](VERSION) file
+- **Release History:** See [CHANGELOG.md](CHANGELOG.md)
+- **License:** [MIT License](LICENSE)
+
+```bash
+# Check current version
+cat VERSION
+
+# View changelog
+cat CHANGELOG.md
+```
 
 ## 📊 Repository Statistics
 

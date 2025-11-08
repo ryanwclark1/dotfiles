@@ -93,3 +93,31 @@ jobs:
           else
             echo "✅ No backup files found"
           fi
+
+  docker-test:
+    name: Docker Integration Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build quick test image
+        run: docker build -f Dockerfile.test-quick -t dotfiles-test:quick .
+
+      - name: Run quick Docker test
+        run: |
+          docker run --rm dotfiles-test:quick
+
+      - name: Docker test summary
+        if: always()
+        run: |
+          echo "### Docker Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Docker tests failed!" >> $GITHUB_STEP_SUMMARY
+          fi
