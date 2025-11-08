@@ -250,3 +250,83 @@ Current features:
 - Automated CI/CD with GitHub Actions
 - Comprehensive documentation
 
+
+## 🔍 Diagnostics & Validation
+
+The repository includes comprehensive diagnostic tools:
+
+```bash
+# Validate installation is correct
+make validate-install
+./scripts/validate-install.sh
+
+# Run health check
+make health-check
+./scripts/health-check.sh
+
+# Run full diagnostic
+make doctor
+
+# Validates:
+# - Directory structure
+# - Installed tools and versions
+# - Configuration files
+# - PATH setup
+# - Shell integration
+# - Git hooks
+# - Common misconfigurations
+# - Performance issues
+```
+
+### What Gets Checked
+
+**Validation (`validate-install.sh`):**
+- ✓ Directory structure
+- ✓ Essential and optional tools
+- ✓ Configuration files
+- ✓ PATH configuration
+- ✓ Shell integration
+- ✓ Development tools
+
+**Health Check (`health-check.sh`):**
+- ✓ Disk space
+- ✓ Shell configuration
+- ✓ Environment conflicts (NVM, Starship)
+- ✓ File permissions
+- ✓ Backup file cleanup
+- ✓ Tool versions
+- ✓ Performance (shell startup time)
+- ✓ Git status
+- ✓ Log file analysis
+
+## 🛡️ Robustness Features
+
+The scripts include professional-grade error handling:
+
+**Common Utilities** (`scripts/common.sh`):
+- Signal handling (SIGINT, SIGTERM)
+- Cleanup on exit
+- Retry logic with exponential backoff
+- Input validation
+- Safe file operations with backups
+- Disk space checking
+- Path sanitization
+- JSON/YAML validation
+
+**Error Handling:**
+- Strict error mode (`set -euo pipefail`)
+- Detailed error messages
+- Graceful failure recovery
+- Automatic cleanup on interruption
+
+**Network Operations:**
+- Retry with exponential backoff
+- Configurable timeouts
+- Connection failure handling
+
+**File Operations:**
+- Automatic backups before overwriting
+- Permission validation
+- Atomic operations where possible
+- Safe path handling (spaces, special chars)
+

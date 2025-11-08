@@ -96,6 +96,14 @@ validate: ## Validate configuration files
 		echo "  - $$file"; \
 	done
 
+validate-install: ## Validate installation is correct
+	@echo "$(BLUE)Validating installation...$(NC)"
+	@./scripts/validate-install.sh
+
+health-check: ## Run health check on dotfiles environment
+	@echo "$(BLUE)Running health check...$(NC)"
+	@./scripts/health-check.sh
+
 list-scripts: ## List all available utility scripts
 	@echo "$(BLUE)Available utility scripts:$(NC)"
 	@ls -1 scripts/*.sh | sed 's/scripts\//  - /' | sed 's/\.sh$$//'
@@ -119,4 +127,11 @@ ci: ## Run CI checks locally
 	@$(MAKE) test
 	@$(MAKE) lint
 	@$(MAKE) validate
+	@$(MAKE) health-check
 	@echo "$(GREEN)CI checks passed!$(NC)"
+
+doctor: ## Run full diagnostic (validate + health-check)
+	@echo "$(BLUE)Running full diagnostic...$(NC)"
+	@$(MAKE) validate-install
+	@$(MAKE) health-check
+	@echo "$(GREEN)Diagnostic complete!$(NC)"
