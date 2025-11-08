@@ -1,0 +1,37 @@
+# Lightweight test Dockerfile (faster builds)
+# Tests basic installation without full tool setup
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Minimal dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    jq \
+    sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create test user
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+USER testuser
+WORKDIR /home/testuser
+
+ENV HOME=/home/testuser
+ENV USER=testuser
+
+# Copy repository
+COPY --chown=testuser:testuser . /home/testuser/dotfiles
+
+WORKDIR /home/testuser/dotfiles
+
+# Dry-run test
+RUN ./bootstrap.sh --dry-run
+
+# Run tests
+RUN ./run-tests.sh bootstrap configs scripts
+
+CMD ["/bin/bash"]

@@ -35,7 +35,7 @@ Context7 is automatically installed when you run:
 For comprehensive setup with advanced features:
 
 ```bash
-./setup-context7.sh
+./setup/setup-context7.sh
 ```
 
 ## Configuration
@@ -312,7 +312,7 @@ context7-add /react/react /vercel/next.js /typescript/typescript
 claude mcp list | grep context7
 
 # Reinstall if needed
-./setup-context7.sh
+./setup/setup-context7.sh
 ```
 
 #### **Project not detected**

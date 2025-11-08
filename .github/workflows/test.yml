@@ -1,0 +1,123 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master, develop, claude/* ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up test environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run test suite
+        run: |
+          chmod +x run-tests.sh
+          chmod +x tests/*.sh
+          ./run-tests.sh bootstrap configs scripts
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some tests failed!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  shellcheck:
+    name: ShellCheck Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          ignore_paths: '.git tmux/plugins yazi/plugins bat/themes'
+          severity: warning
+        continue-on-error: true
+
+      - name: ShellCheck summary
+        run: echo "### ShellCheck completed" >> $GITHUB_STEP_SUMMARY
+
+  validate-configs:
+    name: Validate Configuration Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install validators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq yamllint
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          find . -name "*.json" ! -path "./.git/*" ! -path "./node_modules/*" | while read -r file; do
+            echo "Checking $file"
+            jq empty "$file" || exit 1
+          done
+
+      - name: Validate YAML files
+        run: |
+          echo "Validating YAML files..."
+          find . -name "*.yml" -o -name "*.yaml" ! -path "./.git/*" ! -path "./node_modules/*" | while read -r file; do
+            echo "Checking $file"
+            yamllint -d relaxed "$file" || true
+          done
+
+      - name: Check for backup files
+        run: |
+          echo "Checking for backup files that shouldn't be committed..."
+          if git ls-files | grep -E '\.(bak|backup|old|swp|tmp)$'; then
+            echo "❌ Found backup files in git!"
+            exit 1
+          else
+            echo "✅ No backup files found"
+          fi
+
+  docker-test:
+    name: Docker Integration Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build quick test image
+        run: docker build -f Dockerfile.test-quick -t dotfiles-test:quick .
+
+      - name: Run quick Docker test
+        run: |
+          docker run --rm dotfiles-test:quick
+
+      - name: Docker test summary
+        if: always()
+        run: |
+          echo "### Docker Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Docker tests failed!" >> $GITHUB_STEP_SUMMARY
+          fi

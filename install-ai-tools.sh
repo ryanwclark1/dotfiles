@@ -447,7 +447,7 @@ setup_serena() {
 
     # Use the Serena setup script
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    SERENA_SETUP="$SCRIPT_DIR/setup-serena.sh"
+    SERENA_SETUP="$SCRIPT_DIR/setup/setup-serena.sh"
 
     if [[ -f "$SERENA_SETUP" ]]; then
         log "INFO" "Using Serena setup script..."
@@ -489,7 +489,7 @@ EOF
 setup_genai_toolbox() {
     # Use the GenAI Toolbox setup script
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    TOOLBOX_SETUP="$SCRIPT_DIR/setup-genai-toolbox.sh"
+    TOOLBOX_SETUP="$SCRIPT_DIR/setup/setup-genai-toolbox.sh"
 
     if [[ -f "$TOOLBOX_SETUP" ]]; then
         log "INFO" "Using GenAI Toolbox setup script..."
@@ -522,7 +522,7 @@ setup_genai_toolbox() {
 setup_context7() {
     # Use the comprehensive Context7 setup script
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    CONTEXT7_SETUP="$SCRIPT_DIR/setup-context7.sh"
+    CONTEXT7_SETUP="$SCRIPT_DIR/setup/setup-context7.sh"
 
     if [[ -f "$CONTEXT7_SETUP" ]]; then
         log "INFO" "Using comprehensive Context7 setup script..."

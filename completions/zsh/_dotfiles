@@ -1,0 +1,142 @@
+#compdef bootstrap.sh uninstall.sh run-tests.sh update_dots.sh test-in-docker.sh validate-install.sh health-check.sh
+
+# Zsh completion for dotfiles scripts
+
+_bootstrap() {
+    local -a args
+    args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+        '(-d --dry-run)'{-d,--dry-run}'[Preview without making changes]'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+        '--log-file[Specify log file]:file:_files'
+    )
+    _arguments -s -S $args
+}
+
+_uninstall() {
+    local -a args
+    args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+        '(-y --yes)'{-y,--yes}'[Skip confirmation prompts]'
+        '(-b --backup)'{-b,--backup}'[Create backup before uninstalling]'
+        '--keep-tools[Keep installed tools, only remove configs]'
+        '--dry-run[Show what would be removed]'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+    )
+    _arguments -s -S $args
+}
+
+_run_tests() {
+    local -a args suites
+    args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+        '*:suite:->suites'
+    )
+    suites=('bootstrap' 'configs' 'scripts' 'mcp' 'all')
+
+    _arguments -s -S $args
+
+    case $state in
+        suites)
+            _values 'test suites' $suites
+            ;;
+    esac
+}
+
+_update_dots() {
+    local -a args
+    args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+        '(-y --yes)'{-y,--yes}'[Skip confirmation prompts]'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+    )
+    _arguments -s -S $args
+}
+
+_test_in_docker() {
+    local -a commands
+    commands=(
+        'quick:Run quick Docker test'
+        'full:Run full installation test'
+        'multi:Test on multiple distributions'
+        'interactive:Start interactive container'
+        'build:Build Docker test image'
+        'clean:Clean up Docker images'
+        'help:Show help message'
+    )
+    _describe 'command' commands
+}
+
+_validate_install() {
+    local -a args
+    args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+        '--quick[Quick validation only]'
+    )
+    _arguments -s -S $args
+}
+
+_health_check() {
+    local -a args
+    args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+        '--fix[Attempt to fix issues automatically]'
+    )
+    _arguments -s -S $args
+}
+
+# Makefile targets completion
+_make_dotfiles() {
+    local -a targets
+    targets=(
+        'help:Show all commands'
+        'test:Run all tests'
+        'test-all:Run all tests including MCP'
+        'test-verbose:Run tests with verbose output'
+        'test-quick:Run only bootstrap tests'
+        'install:Install dotfiles and tools'
+        'install-hooks:Install git hooks'
+        'dry-run:Preview installation'
+        'update:Update dotfiles from system'
+        'backup:Create backup of configurations'
+        'clean:Remove installed configurations'
+        'lint:Run ShellCheck'
+        'format:Format shell scripts'
+        'check:Run all checks'
+        'validate:Validate configuration files'
+        'validate-install:Validate installation'
+        'health-check:Run health check'
+        'list-scripts:List all utility scripts'
+        'stats:Show repository statistics'
+        'setup-dev:Setup development environment'
+        'ci:Run CI checks locally'
+        'doctor:Run full diagnostic'
+        'docker-test:Run quick Docker test'
+        'docker-test-full:Run full Docker test'
+        'docker-test-multi:Test on multiple distributions'
+        'docker-shell:Start interactive container'
+        'docker-build:Build Docker test image'
+        'docker-clean:Clean up Docker images'
+    )
+
+    # Only complete if we're in dotfiles directory
+    if [[ -f "Makefile" ]] && grep -q "dotfiles" Makefile 2>/dev/null; then
+        _describe 'targets' targets
+    else
+        # Fall back to default make completion
+        _make
+    fi
+}
+
+# Register completions
+compdef _bootstrap bootstrap.sh
+compdef _uninstall uninstall.sh
+compdef _run_tests run-tests.sh
+compdef _update_dots update_dots.sh
+compdef _test_in_docker test-in-docker.sh
+compdef _validate_install validate-install.sh
+compdef _health_check health-check.sh
+compdef _make_dotfiles make

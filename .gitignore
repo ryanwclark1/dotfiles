@@ -1,35 +1,36 @@
+# Backup and temporary files
 *.bak
 *.backup
-
-# Default meson build dir
-/build
-
-/outputs
-
-# ccls
-/.ccls-cache
-
-result
-result-*
+*.back
+*.old
+*.orig
+*.save
+*.swp
+*.swo
+*.tmp
+*.temp
+*~
+*.backup.*
+*.*.backup
+.#*
+#*#
 
 # IDE
 .vscode/
 .idea/
+.cursorindexingignore
 
-.pre-commit-config.yaml
-
-# clangd and possibly more
+# Cache directories
 .cache/
 
 # Mac OS
 .DS_Store
 
-flake-regressions
-
 # direnv
 .direnv/
-CLAUDE.md
+
+# Claude Code
 .claude/settings.local.json
-CLAUDE.md
+
+# Tool logs
 navi/navi.log
-.cursorindexingignore

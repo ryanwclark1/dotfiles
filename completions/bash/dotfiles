@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# Bash completion for dotfiles scripts
+
+_bootstrap_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-h --help -d --dry-run -v --verbose --log-file"
+
+    case "${prev}" in
+        --log-file)
+            COMPREPLY=( $(compgen -f "${cur}") )
+            return 0
+            ;;
+    esac
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+_uninstall_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-h --help -y --yes -b --backup --keep-tools --dry-run -v --verbose"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+_run_tests_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-h --help -v --verbose bootstrap configs scripts mcp all"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+_update_dots_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-h --help -y --yes -v --verbose"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+_test_in_docker_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="quick full multi interactive build clean help"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+_validate_install_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-h --help -v --verbose --quick"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+_health_check_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-h --help -v --verbose --fix"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+# Register completions
+complete -F _bootstrap_completion bootstrap.sh
+complete -F _uninstall_completion uninstall.sh
+complete -F _run_tests_completion run-tests.sh
+complete -F _update_dots_completion update_dots.sh
+complete -F _test_in_docker_completion test-in-docker.sh
+complete -F _validate_install_completion validate-install.sh
+complete -F _health_check_completion health-check.sh
+
+# Makefile targets completion
+_make_dotfiles_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+
+    opts="help test test-all test-verbose test-quick install install-hooks dry-run update backup clean lint format check validate validate-install health-check list-scripts stats setup-dev ci doctor docker-test docker-test-full docker-test-multi docker-shell docker-build docker-clean"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+}
+
+# Only register make completion if in dotfiles directory
+if [[ -f "Makefile" ]] && grep -q "dotfiles" Makefile 2>/dev/null; then
+    complete -F _make_dotfiles_completion make
+fi

@@ -20,10 +20,10 @@ This is a personal dotfiles repository that manages configuration files and util
 ### Testing and Validation
 ```bash
 # Test MCP servers functionality
-./test-mcp.sh
+./tests/test-mcp.sh
 
 # Clean up duplicate dotfiles entries in .bashrc
-./cleanup_bashrc.sh
+./scripts/cleanup_bashrc.sh
 ```
 
 ### VSCode Extension Management
@@ -260,4 +260,7 @@ The `update_dots.sh` script automatically excludes backup files with these patte
 1. **Making Changes**: Edit configurations in `~/.config/` during normal use
 2. **Syncing Changes**: Run `./update_dots.sh` to copy changes back to repository
 3. **Adding New Tools**: Follow the bootstrap script extension guide above
-4. **Testing**: Use provided test scripts (`test-mcp.sh`) to validate functionality
+4. **Testing**: Use the comprehensive test framework to validate changes
+   - Run all tests: `./run-tests.sh`
+   - Run specific suite: `./run-tests.sh bootstrap` or `./run-tests.sh configs`
+   - See `docs/testing-guide.md` for detailed testing documentation

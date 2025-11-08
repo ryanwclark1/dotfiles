@@ -29,7 +29,7 @@ Serena is automatically installed when you run:
 For enhanced setup with additional features:
 
 ```bash
-./setup-serena.sh
+./setup/setup-serena.sh
 ```
 
 ## Configuration
