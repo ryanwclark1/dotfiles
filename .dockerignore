@@ -1,6 +1,5 @@
-# Git
+# Git (keep .gitignore for tests)
 .git/
-.gitignore
 .github/
 
 # Documentation (not needed for tests)
