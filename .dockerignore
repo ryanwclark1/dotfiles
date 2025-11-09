@@ -2,6 +2,9 @@
 .git/
 .github/
 
+# DevContainer (not needed for tests, uses JSONC format)
+.devcontainer/
+
 # Documentation (not needed for tests)
 *.md
 !README.md
