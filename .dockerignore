@@ -1,7 +1,9 @@
-# Git
+# Git (keep .gitignore for tests)
 .git/
-.gitignore
 .github/
+
+# DevContainer (not needed for tests, uses JSONC format)
+.devcontainer/
 
 # Documentation (not needed for tests)
 *.md

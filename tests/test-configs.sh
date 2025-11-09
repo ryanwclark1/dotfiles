@@ -131,11 +131,16 @@ fi
 
 # Test: No backup files in repo (should be gitignored)
 test_start "no backup files tracked in git"
-backup_files=$(git -C "$REPO_ROOT" ls-files | grep -E '\.(bak|backup|old|swp|tmp)$' || true)
-if [[ -z "$backup_files" ]]; then
-    test_pass
+if [[ -d "$REPO_ROOT/.git" ]]; then
+    backup_files=$(git -C "$REPO_ROOT" ls-files | grep -E '\.(bak|backup|old|swp|tmp)$' || true)
+    if [[ -z "$backup_files" ]]; then
+        test_pass
+    else
+        test_fail "Found backup files in git: $backup_files"
+    fi
 else
-    test_fail "Found backup files in git: $backup_files"
+    # Skip test if not a git repository (e.g., in Docker)
+    skip_test "Not a git repository"
 fi
 
 # Test: .gitignore exists and has content

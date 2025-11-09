@@ -71,7 +71,7 @@ jobs:
       - name: Validate JSON files
         run: |
           echo "Validating JSON files..."
-          find . -name "*.json" ! -path "./.git/*" ! -path "./node_modules/*" | while read -r file; do
+          find . -name "*.json" ! -path "./.git/*" ! -path "./node_modules/*" ! -path "*/.devcontainer/*" ! -path "*/tmux/plugins/*" | while read -r file; do
             echo "Checking $file"
             jq empty "$file" || exit 1
           done
