@@ -1,8 +1,12 @@
 # MCP Migration Summary
 
+> **Note**: This document is historical. The migration described below has been completed. The migration scripts mentioned (`migrate-to-mcp-json.sh`, `test-mcp-json.sh`) have been removed as they are no longer needed. The repository now uses `.mcp.json` for all MCP server configurations.
+
 ## Overview
 
 This document summarizes the migration from the old `install-ai-tools.sh` MCP approach to the new `.mcp.json` approach, based on the [Anthropic MCP documentation](https://docs.anthropic.com/en/docs/claude-code/mcp).
+
+**Status**: ✅ Migration Complete - Repository now uses `.mcp.json` for MCP configuration.
 
 ## What We've Created
 
