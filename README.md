@@ -162,12 +162,15 @@ serena-init [project_name] [project_path]
 
 ## 📚 Documentation
 
-- **[Testing Guide](docs/testing-guide.md)** - How to write and run tests
-- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
-- [MCP Server Status](docs/mcp-server-status.md) - Current status of all MCP servers
-- [Serena Setup Guide](docs/serena-setup.md) - Complete Serena documentation
-- [Context7 Setup Guide](docs/context7-setup.md) - Context7 documentation
-- [Qwen Setup Guide](docs/qwen-setup.md) - Qwen CLI with Ollama integration
+- **[Documentation Index](docs/)** - Complete documentation index
+
+- **[Testing Guide](docs/guides/testing-guide.md)** - How to write and run tests
+- **[Troubleshooting Guide](docs/guides/troubleshooting.md)** - Common issues and solutions
+- **[Docker Testing Guide](docs/guides/docker-testing.md)** - Testing in isolated containers
+- [MCP Server Status](docs/mcp/mcp-server-status.md) - Current status of all MCP servers
+- [Serena Setup Guide](docs/setup/serena-setup.md) - Complete Serena documentation
+- [Context7 Setup Guide](docs/setup/context7-setup.md) - Context7 documentation
+- [Qwen Setup Guide](docs/setup/qwen-setup.md) - Qwen CLI with Ollama integration
 
 ## Testing
 
@@ -195,7 +198,7 @@ The repository includes a comprehensive testing framework to ensure reliability.
 ./scripts/cleanup-failing-mcps.sh
 ```
 
-See [Testing Guide](docs/testing-guide.md) for details on writing and running tests.
+See [Testing Guide](docs/guides/testing-guide.md) for details on writing and running tests.
 
 ## 🔧 Development
 
@@ -275,7 +278,7 @@ ENVIRONMENT VARIABLES:
 
 ## 🐛 Troubleshooting
 
-See the comprehensive [Troubleshooting Guide](docs/troubleshooting.md) for common issues and solutions.
+See the comprehensive [Troubleshooting Guide](docs/guides/troubleshooting.md) for common issues and solutions.
 
 Quick tips:
 - **Installation fails**: Check `~/.dotfiles-install.log`
@@ -461,5 +464,5 @@ make docker-shell
 - Manual testing
 - Explore environment
 
-See [Docker Testing Guide](docs/docker-testing.md) for complete documentation.
+See [Docker Testing Guide](docs/guides/docker-testing.md) for complete documentation.
 

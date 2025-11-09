@@ -420,7 +420,7 @@ make docs-preview  # (coming soon)
 ## Questions or Problems?
 
 - **Documentation**: Check `docs/` directory
-- **Troubleshooting**: See `docs/troubleshooting.md`
+- **Troubleshooting**: See `docs/guides/troubleshooting.md`
 - **Issues**: Open an issue on GitHub
 - **Discussions**: Use GitHub Discussions
 
